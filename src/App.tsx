@@ -164,8 +164,18 @@ function makeid(length: number) {
   return result;
 }
 
+const getMe = (): string => {
+  const me = localStorage.getItem('me');
+  if (me) {
+    return me;
+  }
+  const name = window.prompt('Name?') ?? "gav";
+  localStorage.setItem('me', name);
+  return name;
+};
+
 function App() {
-  const me = "hamid";
+  const me = getMe();
 
   const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>)
   const [seed, setSeed] = useState("");
