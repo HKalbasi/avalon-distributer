@@ -104,6 +104,7 @@ const gameFromSeed = (seed: number, n: number): Game | undefined => {
 }
 
 const renderGameFor = (me: number, players: string[], game: Game) => {
+  const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
   const isBad = bads.includes(game.roles[me]);
   return (
     <div>
@@ -147,6 +148,9 @@ const renderGameFor = (me: number, players: string[], game: Game) => {
       </div>
       <div>
         Starter: {players[game.starter]}
+      </div>
+      <div>
+        Final hash of game: {Math.abs(hashOfGame).toString(16)}
       </div>
     </div>
   )
