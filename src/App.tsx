@@ -113,11 +113,10 @@ const renderGameFor = (me: number, players: string[], game: Game) => {
       </div>
       {isBad && <div>
         Your team: <ul>
-          {game.roles.map((role, i) => (
-            bads.includes(role) && <li key={i}>
-              {players[i]}: {role}
-            </li>
-          ))}
+          {game.roles.find((r) => r === "Mordred") && <li>Mordred: {players[game.roles.findIndex((r) => r === 'Mordred')]}</li>}
+          {game.roles.find((r) => r === "Morgana") && <li>Morgana: {players[game.roles.findIndex((r) => r === 'Morgana')]}</li>}
+          {game.roles.find((r) => r === "Assassin") && <li>Assassin: {players[game.roles.findIndex((r) => r === 'Assassin')]}</li>}
+          {game.roles.find((r) => r === "Minion") && <li>Minion: {players[game.roles.findIndex((r) => r === 'Minion')]}</li>}
         </ul>
       </div>}
       {game.roles[me] === "Merlin" && <div>
