@@ -180,10 +180,19 @@ const getMe = (): string => {
 function App() {
   const me = getMe();
 
-  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>)
+  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>);
   const [seed, setSeed] = useState("");
 
   const setFriendsPermanent = (x: Friend[]) => {
+
+    x.sort((a, b) => {
+      if (a.name < b.name) return -1;
+      if (a.name > b.name) return 1;
+      return 0;
+    });
+
+    x.forEach(a => {a.name = a.name.trim()});
+
     localStorage.setItem('friends', JSON.stringify(x));
     setFriends(x);
   };
