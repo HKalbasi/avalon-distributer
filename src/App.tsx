@@ -177,6 +177,18 @@ const getMe = (): string => {
   return name;
 };
 
+function hasDuplicate(array: Friend[]): boolean {
+  const seen = new Set();
+  for (const item of array) {
+    if (seen.has(item.name)) {
+      return true;
+    }
+    seen.add(item.name);
+  }
+
+  return false;
+}
+
 function App() {
   const me = getMe();
 
@@ -184,6 +196,10 @@ function App() {
   const [seed, setSeed] = useState("");
 
   const setFriendsPermanent = (x: Friend[]) => {
+    x.forEach(a => {a.name = a.name.trim().toLowerCase()});
+
+    if (hasDuplicate(x))
+      return;
 
     x.sort((a, b) => {
       if (a.name < b.name) return -1;
@@ -191,7 +207,6 @@ function App() {
       return 0;
     });
 
-    x.forEach(a => {a.name = a.name.trim()});
 
     localStorage.setItem('friends', JSON.stringify(x));
     setFriends(x);
