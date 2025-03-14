@@ -172,13 +172,20 @@ const normalizeName = (name: string): string => {
 };
 
 const getMe = (): string => {
-  const me = localStorage.getItem('me');
-  if (me) {
-    return me;
+
+  const permanentName = (name: string) => {
+    name = normalizeName(name);
+    localStorage.setItem('me', name);
+  };
+
+  let name = localStorage.getItem('me');
+  if (name) {
+    // To make sure the name is stored in standard/normalized format.
+    permanentName(name);
+    return name;
   }
-  let name = window.prompt('Name?') ?? "gav";
-  name = normalizeName(name);
-  localStorage.setItem('me', name);
+  name = window.prompt('Name?') ?? "gav";
+  permanentName(name);
   return name;
 };
 
