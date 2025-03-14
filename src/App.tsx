@@ -188,16 +188,21 @@ const hasDuplicate = (list: string[]): boolean => {
 };
 
 function App() {
-  const me = getMe();
 
-  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>);
-  const [seed, setSeed] = useState("");
+  enum Commands {
+    Add = 1,
+    Remove,
+    Toggle
+  }
 
-  const setFriendsPermanent = (x: Friend[]) => {
+  const setFriendsPermanent = (x: Friend[], command: Commands) => {
     x.forEach(a => {a.name = normalizeName(a.name)});
 
-    if (hasDuplicate([...x.map(n => n.name), getMe()]))
-      return;
+    if (command == Commands.Add)
+    {
+      if (hasDuplicate([...x.map(n => n.name), getMe()]))
+        return;
+    }
 
     x.sort((a, b) => {
       if (a.name < b.name) return -1;
@@ -205,10 +210,15 @@ function App() {
       return 0;
     });
 
-
     localStorage.setItem('friends', JSON.stringify(x));
     setFriends(x);
   };
+
+  const me = getMe();
+
+  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>);
+  const [seed, setSeed] = useState("");
+
 
   const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort();
 
@@ -230,15 +240,15 @@ function App() {
           {friends.map((friend, i) => (
             <li key={i}>
               {friend.name}
-              <button onClick={() => setFriendsPermanent(friends.map((f, j) => i === j ? { ...f, is_in_game: !f.is_in_game } : f))}>
+              <button onClick={() => setFriendsPermanent(friends.map((f, j) => i === j ? { ...f, is_in_game: !f.is_in_game } : f), Commands.Toggle)}>
                 {friend.is_in_game ? "Leave" : "Join"}
               </button>
-              <button onClick={() => setFriendsPermanent(friends.filter((_, j) => i !== j))}>
+              <button onClick={() => setFriendsPermanent(friends.filter((_, j) => i !== j), Commands.Remove)}>
                 Remove
               </button>
             </li>
           ))}
-          <button onClick={() => setFriendsPermanent([...friends, { name: window.prompt('Name?') ?? "gav", is_in_game: false }])}>
+          <button onClick={() => setFriendsPermanent([...friends, { name: window.prompt('Name?') ?? "gav", is_in_game: false }], Commands.Add)}>
             Add friend
           </button>
         </ul>
@@ -252,7 +262,7 @@ function App() {
         <br />
         Hash of players: {Math.abs(playersHash).toString(16)}
         <br />
-        <span onClick={() => setSeed(makeid(4))}>Game seed:</span> 
+        <span onClick={() => setSeed(makeid(4))}>Game seed:</span>
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
