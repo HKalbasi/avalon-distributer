@@ -167,27 +167,25 @@ function makeid(length: number) {
   return result;
 }
 
+const normalizeName = (name: string): string => {
+  return name.toLowerCase().trim();
+};
+
 const getMe = (): string => {
   const me = localStorage.getItem('me');
   if (me) {
     return me;
   }
-  const name = window.prompt('Name?') ?? "gav";
+  let name = window.prompt('Name?') ?? "gav";
+  name = normalizeName(name);
   localStorage.setItem('me', name);
   return name;
 };
 
-function hasDuplicate(array: Friend[]): boolean {
-  const seen = new Set();
-  for (const item of array) {
-    if (seen.has(item.name)) {
-      return true;
-    }
-    seen.add(item.name);
-  }
-
-  return false;
-}
+const hasDuplicate = (list: string[]): boolean => {
+  const set = new Set(list);
+  return set.size !== list.length;
+};
 
 function App() {
   const me = getMe();
@@ -196,9 +194,9 @@ function App() {
   const [seed, setSeed] = useState("");
 
   const setFriendsPermanent = (x: Friend[]) => {
-    x.forEach(a => {a.name = a.name.trim().toLowerCase()});
+    x.forEach(a => {a.name = normalizeName(a.name)});
 
-    if (hasDuplicate(x))
+    if (hasDuplicate([...x.map(n => n.name), getMe()]))
       return;
 
     x.sort((a, b) => {
