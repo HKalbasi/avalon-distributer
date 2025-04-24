@@ -224,8 +224,19 @@ function App() {
     setFriends(x);
   };
 
+  // Update your exportGame function to handle potential errors:
   const exportGame = () => {
-    setShowQR(!showQR);
+    try {
+      JSON.stringify({
+        players: [...friends, { name: me, is_in_game: true }],
+        seed,
+        hash: Math.abs(playersHash).toString(16)
+      });
+      setShowQR(!showQR);
+    } catch (error) {
+      console.error('Error generating game data:', error);
+      alert('Error generating export data');
+    }
   };
 
 
@@ -285,7 +296,11 @@ function App() {
         </button>
         {/* Add QR Code display */}
         {showQR && <QRCode
-          value="hello world"
+          value={JSON.stringify({
+            players: [...friends, { name: me, is_in_game: true }],
+            seed: seed,
+            hash: Math.abs(playersHash).toString(16)
+          })}
           size={128}
           bgColor="#ffffff"
           fgColor="#000000"
