@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import QRCode from 'react-qr-code'
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import './App.css'
@@ -196,6 +197,7 @@ const hasDuplicate = (list: string[]): boolean => {
 };
 
 function App() {
+  const [showQR, setShowQR] = useState(false);
 
   enum Commands {
     Add = 1,
@@ -221,6 +223,11 @@ function App() {
     localStorage.setItem('friends', JSON.stringify(x));
     setFriends(x);
   };
+
+  const exportGame = () => {
+    setShowQR(!showQR);
+  };
+
 
   const me = getMe();
 
@@ -273,6 +280,17 @@ function App() {
         <br />
         <span onClick={() => setSeed(makeid(4))}>Game seed:</span>
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
+        <button onClick={exportGame}>
+          Export Game Information
+        </button>
+        {/* Add QR Code display */}
+        {showQR && <QRCode
+          value="hello world"
+          size={128}
+          bgColor="#ffffff"
+          fgColor="#000000"
+          level="Q"
+        />}
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
