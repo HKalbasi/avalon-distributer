@@ -228,9 +228,8 @@ function App() {
   const exportGame = () => {
     try {
       JSON.stringify({
-        players: [...friends, { name: me, is_in_game: true }],
-        seed,
-        hash: Math.abs(playersHash).toString(16)
+        players: [...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }],
+        seed: seed
       });
       setShowQR(!showQR);
     } catch (error) {
@@ -296,11 +295,7 @@ function App() {
         </button>
         {/* Add QR Code display */}
         {showQR && <QRCode
-          value={JSON.stringify({
-            players: [...friends, { name: me, is_in_game: true }],
-            seed: seed,
-            hash: Math.abs(playersHash).toString(16)
-          })}
+          value={JSON.stringify([...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }])}
           size={128}
           bgColor="#ffffff"
           fgColor="#000000"
