@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PWABadge from './PWABadge.tsx'
+import BuildInfo from './BuildInfo.tsx'
 import './App.css'
 
 type Friend = {
@@ -238,6 +239,7 @@ function App() {
 
   return (
     <>
+      <h1>Avalon</h1>
       <div>
         I am: {me}
       </div>
@@ -274,6 +276,7 @@ function App() {
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
+      <BuildInfo />
     </>
   )
 }
