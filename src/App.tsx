@@ -226,8 +226,7 @@ function App() {
     setFriends(x);
   };
 
-  // Update your exportGame function to handle potential errors:
-  const exportGame = () => {
+  const qrcodeGameExport = () => {
     try {
       JSON.stringify({
         players: [...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }],
@@ -292,17 +291,20 @@ function App() {
         <br />
         <span onClick={() => setSeed(makeid(4))}>Game seed:</span>
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
-        <button onClick={exportGame}>
-          Export Game Information
-        </button>
-        {/* Add QR Code display */}
-        {showQR && <QRCode
-          value={JSON.stringify([...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }])}
-          size={128}
-          bgColor="#ffffff"
-          fgColor="#000000"
-          level="Q"
-        />}
+        {/* QR Code Export Section */}
+        <div>
+          <button onClick={qrcodeGameExport}>
+            Export Game Information
+          </button>
+          {/* Add QR Code display */}
+          {showQR && <QRCode
+            value={JSON.stringify([...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }])}
+            size={128}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            level="Q"
+          />}
+        </div>
         {/* QR Code Import Section */}
         <div>
           <button onClick={() => {
