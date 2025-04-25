@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import QRCode from 'react-qr-code'
+import QRScanner from 'qr-scanner'
+import QrScannerWorkderPath from 'qr-scanner/qr-scanner-worker.min.js'
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import './App.css'
@@ -301,6 +303,24 @@ function App() {
           fgColor="#000000"
           level="Q"
         />}
+        {/* QR Code Import Section */}
+        <div>
+          <button onClick={() => {
+            const scanner = new QRScanner(document.createElement('video'), (result) => {
+              try {
+                const data = JSON.parse(h);
+                setFriendsPermanent(data, Commands.Add);
+              } catch (error) {
+                console.error('Error parsing QR code data:', error);
+                alert('Invalid QR code data');
+              }
+            });
+            // scanner.setWorkerSrc(QrScannerWorkderPath);
+            scanner.start();
+          }}>
+            Scan QR Code
+          </button>
+        </div>
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
