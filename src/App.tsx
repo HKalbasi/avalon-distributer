@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import QRCode from 'react-qr-code'
-import QRScanner from 'qr-scanner'
-import QrScannerWorkderPath from 'qr-scanner/qr-scanner-worker.min.js'
+import { Scanner } from '@yudiel/react-qr-scanner';
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import './App.css'
@@ -204,7 +203,8 @@ function App() {
   enum Commands {
     Add = 1,
     Remove,
-    Toggle
+    Toggle,
+    Append
   }
 
   const setFriendsPermanent = (x: Friend[], command: Commands) => {
@@ -214,6 +214,27 @@ function App() {
     {
       if (hasDuplicate([...x.map(n => n.name), getMe()]))
         return;
+    }
+    else if (command == Commands.Append)
+    {
+      const current_friends = localStorage.getItem('friends');
+
+      if (current_friends)
+      {
+        const current_friends_list: Friend[] = JSON.parse(current_friends);
+
+        // Import new friends into current friends
+        for (var current_friend of current_friends_list)
+        {
+          for (var new_friend of x)
+          {
+            if (new_friend.name === current_friend.name)
+              continue;
+
+            x.push(current_friend);
+          }
+        }
+      }
     }
 
     x.sort((a, b) => {
@@ -237,6 +258,11 @@ function App() {
       console.error('Error generating game data:', error);
       alert('Error generating export data');
     }
+  };
+
+  const qrcodeGameImport = (read_data: string) => {
+    const data = JSON.parse(read_data);
+    setFriendsPermanent(data, Commands.Append);
   };
 
 
@@ -298,7 +324,7 @@ function App() {
           </button>
           {/* Add QR Code display */}
           {showQR && <QRCode
-            value={JSON.stringify([...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }])}
+            value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
             size={128}
             bgColor="#ffffff"
             fgColor="#000000"
@@ -307,21 +333,10 @@ function App() {
         </div>
         {/* QR Code Import Section */}
         <div>
-          <button onClick={() => {
-            const scanner = new QRScanner(document.createElement('video'), (result) => {
-              try {
-                const data = JSON.parse(h);
-                setFriendsPermanent(data, Commands.Add);
-              } catch (error) {
-                console.error('Error parsing QR code data:', error);
-                alert('Invalid QR code data');
-              }
-            });
-            // scanner.setWorkerSrc(QrScannerWorkderPath);
-            scanner.start();
-          }}>
+          {/* <button onClick={() => {}}>
             Scan QR Code
-          </button>
+          </button> */}
+          <Scanner onScan={(result: string) => qrcodeGameImport(result)} sound:false/>;
         </div>
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
