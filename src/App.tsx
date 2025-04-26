@@ -208,32 +208,46 @@ function App() {
   }
 
   const setFriendsPermanent = (x: Friend[], command: Commands) => {
+    console.log("before x : ", x);
     x.forEach(a => {a.name = normalizeName(a.name)});
+    console.log("after x : ", x);
 
     if (command == Commands.Add)
     {
       if (hasDuplicate([...x.map(n => n.name), getMe()]))
         return;
     }
-    else if (command == Commands.Append)
-    {
+    else if (command == Commands.Append) {
+      console.log("first x : ", x);
+
+      const tmp: Friend[] = [];
+
       const current_friends = localStorage.getItem('friends');
 
-      if (current_friends)
-      {
+      if (current_friends) {
+
         const current_friends_list: Friend[] = JSON.parse(current_friends);
+        current_friends_list.forEach(x=>x.is_in_game=false)
 
         // Import new friends into current friends
-        for (var current_friend of current_friends_list)
-        {
-          for (var new_friend of x)
-          {
-            if (new_friend.name === current_friend.name)
-              continue;
-
-            x.push(current_friend);
+        for (const new_friend of x) {
+          let exists = false
+          for (const current_friend of current_friends_list) {
+            if (new_friend.name === current_friend.name) {
+              current_friend.is_in_game = new_friend.is_in_game
+              exists = true;
+              break;
+            }
           }
+
+          if (!exists)
+            tmp.push(new_friend);
         }
+
+        for (const a of tmp) {
+          current_friends_list.push(a);
+        }
+        x = current_friends_list
       }
     }
 
