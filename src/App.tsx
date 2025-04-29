@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import QRCode from 'react-qr-code'
+import { Scanner } from '@yudiel/react-qr-scanner';
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import './App.css'
@@ -196,6 +198,11 @@ const hasDuplicate = (list: string[]): boolean => {
 };
 
 function App() {
+  // Showing/Exporting QRCode
+  const [showQR, setShowQR] = useState(false);
+
+  // Scanning/Reading QRCode
+  const [isScanning, setIsScanning] = useState(false);
 
   enum Commands {
     Add = 1,
@@ -211,6 +218,36 @@ function App() {
       if (hasDuplicate([...x.map(n => n.name), getMe()]))
         return;
     }
+    else if (command == Commands.Append) {
+      const tmp: Friend[] = [];
+
+      const current_friends = localStorage.getItem('friends');
+
+      if (current_friends) {
+        const current_friends_list: Friend[] = JSON.parse(current_friends);
+        current_friends_list.forEach(x=>x.is_in_game=false);
+
+        // Import new friends into current friends
+        for (const new_friend of x) {
+          let exists = false;
+          for (const current_friend of current_friends_list) {
+            if (new_friend.name === current_friend.name) {
+              current_friend.is_in_game = new_friend.is_in_game;
+              exists = true;
+              break;
+            }
+          }
+
+          if (!exists)
+            tmp.push(new_friend);
+        }
+
+        for (const a of tmp) {
+          current_friends_list.push(a);
+        }
+        x = current_friends_list;
+      }
+    }
 
     x.sort((a, b) => {
       if (a.name < b.name) return -1;
@@ -221,6 +258,33 @@ function App() {
     localStorage.setItem('friends', JSON.stringify(x));
     setFriends(x);
   };
+
+  const qrcodeGameExport = () => {
+    try {
+      JSON.stringify({
+        players: [...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }],
+        seed: seed
+      });
+      setShowQR(!showQR);
+    } catch (error) {
+      console.error('Error generating game data:', error);
+      alert('Error generating export data');
+    }
+  };
+
+  const qrcodeGameImport = (read_data: string) => {
+    const data = JSON.parse(read_data);
+    setFriendsPermanent(data, Commands.Append);
+  };
+
+  const handleScan = (result: string) => {
+    if (isScanning) {
+      qrcodeGameImport(result);
+      // Stop scanning after successful read
+      setIsScanning(false);
+    }
+  };
+
 
   const me = getMe();
 
@@ -273,6 +337,34 @@ function App() {
         <br />
         <span onClick={() => setSeed(makeid(4))}>Game seed:</span>
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
+        {/* QR Code Export Section */}
+        <div>
+          <button onClick={qrcodeGameExport}>
+            Export Game Information
+          </button>
+          {/* Add QR Code display */}
+          {showQR && <QRCode
+            value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
+            size={128}
+            bgColor="#ffffff"
+            fgColor="#000000"
+            level="Q"
+          />}
+        </div>
+        {/* QR Code Import Section */}
+        <div>
+          <button onClick={() => setIsScanning(!isScanning)}>
+            {isScanning ? 'Stop Scanning' : 'Start Scanning'}
+          </button>
+
+          {isScanning && (
+            <Scanner
+              onScan={handleScan}
+              enabled={isScanning}
+              sound={false}
+            />
+          )}
+        </div>
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
