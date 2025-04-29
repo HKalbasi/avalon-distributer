@@ -207,7 +207,8 @@ function App() {
   enum Commands {
     Add = 1,
     Remove,
-    Toggle
+    Toggle,
+    Append
   }
 
   const setFriendsPermanent = (x: Friend[], command: Commands) => {
