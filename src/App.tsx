@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import QRCode from 'react-qr-code'
-import { Scanner } from '@yudiel/react-qr-scanner';
+import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import './App.css'
@@ -207,7 +207,8 @@ function App() {
   enum Commands {
     Add = 1,
     Remove,
-    Toggle
+    Toggle,
+    Append
   }
 
   const setFriendsPermanent = (x: Friend[], command: Commands) => {
@@ -272,13 +273,17 @@ function App() {
     }
   };
 
-  const qrcodeGameImport = (read_data: string) => {
-    const data = JSON.parse(read_data);
+  const qrcodeGameImport = (read_data: IDetectedBarcode[]) => {
+    if (read_data.length == 0) {
+      return;
+    }
+    const data = JSON.parse(read_data[0].rawValue);
     setFriendsPermanent(data, Commands.Append);
   };
 
-  const handleScan = (result: string) => {
+  const handleScan = (result: IDetectedBarcode[]) => {
     if (isScanning) {
+
       qrcodeGameImport(result);
       // Stop scanning after successful read
       setIsScanning(false);
@@ -360,8 +365,6 @@ function App() {
           {isScanning && (
             <Scanner
               onScan={handleScan}
-              enabled={isScanning}
-              sound={false}
             />
           )}
         </div>
