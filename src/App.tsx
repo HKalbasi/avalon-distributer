@@ -207,14 +207,11 @@ function App() {
   enum Commands {
     Add = 1,
     Remove,
-    Toggle,
-    Append
+    Toggle
   }
 
   const setFriendsPermanent = (x: Friend[], command: Commands) => {
-    console.log("before x : ", x);
     x.forEach(a => {a.name = normalizeName(a.name)});
-    console.log("after x : ", x);
 
     if (command == Commands.Add)
     {
@@ -222,23 +219,20 @@ function App() {
         return;
     }
     else if (command == Commands.Append) {
-      console.log("first x : ", x);
-
       const tmp: Friend[] = [];
 
       const current_friends = localStorage.getItem('friends');
 
       if (current_friends) {
-
         const current_friends_list: Friend[] = JSON.parse(current_friends);
-        current_friends_list.forEach(x=>x.is_in_game=false)
+        current_friends_list.forEach(x=>x.is_in_game=false);
 
         // Import new friends into current friends
         for (const new_friend of x) {
-          let exists = false
+          let exists = false;
           for (const current_friend of current_friends_list) {
             if (new_friend.name === current_friend.name) {
-              current_friend.is_in_game = new_friend.is_in_game
+              current_friend.is_in_game = new_friend.is_in_game;
               exists = true;
               break;
             }
@@ -251,7 +245,7 @@ function App() {
         for (const a of tmp) {
           current_friends_list.push(a);
         }
-        x = current_friends_list
+        x = current_friends_list;
       }
     }
 
