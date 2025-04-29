@@ -282,6 +282,7 @@ function App() {
   };
 
   const handleScan = (result: IDetectedBarcode[]) => {
+    alert("this is elon musk");
     if (isScanning) {
 
       qrcodeGameImport(result);
@@ -351,7 +352,7 @@ function App() {
           {showQR && <QRCode
             value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
             size={128}
-            bgColor="#ffffff"
+            bgColor="#fbafe8"
             fgColor="#000000"
             level="Q"
           />}
