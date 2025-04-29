@@ -198,7 +198,11 @@ const hasDuplicate = (list: string[]): boolean => {
 };
 
 function App() {
+  // Showing/Exporting QRCode
   const [showQR, setShowQR] = useState(false);
+
+  // Scanning/Reading QRCode
+  const [isScanning, setIsScanning] = useState(false);
 
   enum Commands {
     Add = 1,
@@ -279,6 +283,14 @@ function App() {
     setFriendsPermanent(data, Commands.Append);
   };
 
+  const handleScan = (result: string) => {
+    if (isScanning) {
+      qrcodeGameImport(result);
+      // Stop scanning after successful read
+      setIsScanning(false);
+    }
+  };
+
 
   const me = getMe();
 
@@ -347,10 +359,17 @@ function App() {
         </div>
         {/* QR Code Import Section */}
         <div>
-          {/* <button onClick={() => {}}>
-            Scan QR Code
-          </button> */}
-          <Scanner onScan={(result: string) => qrcodeGameImport(result)} sound:false/>;
+          <button onClick={() => setIsScanning(!isScanning)}>
+            {isScanning ? 'Stop Scanning' : 'Start Scanning'}
+          </button>
+
+          {isScanning && (
+            <Scanner
+              onScan={handleScan}
+              enabled={isScanning}
+              sound={false}
+            />
+          )}
         </div>
       </div>
       {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
