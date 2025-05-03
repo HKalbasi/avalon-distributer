@@ -345,17 +345,26 @@ function App() {
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
         {/* QR Code Export Section */}
         <div>
-          <button onClick={qrcodeGameExport}>
-            Export Game Information
-          </button>
-          {/* Add QR Code display */}
-          {showQR && <QRCode
-            value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
-            size={128}
-            bgColor="#fbafe8"
-            fgColor="#000000"
-            level="Q"
-          />}
+        <button onClick={qrcodeGameExport}>
+          Export Game Information
+        </button>
+        {showQR && (
+          <div style={{
+            display: 'inline-block',
+            padding: '16px',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <QRCode
+              value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
+              size={200}
+              bgColor="#ffffff"  // Explicit white background
+              fgColor="#000000"
+              level="Q"
+            />
+          </div>
+        )}
         </div>
         {/* QR Code Import Section */}
         <div>
