@@ -205,6 +205,11 @@ function App() {
   // Scanning/Reading QRCode
   const [isScanning, setIsScanning] = useState(false);
 
+  const me = getMe();
+
+  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>);
+  const [seed, setSeed] = useState("");
+
   enum Commands {
     Add = 1,
     Remove,
@@ -240,8 +245,9 @@ function App() {
             }
           }
 
-          if (!exists)
+          if (!exists && new_friend.name !== getMe()) {
             tmp.push(new_friend);
+          }
         }
 
         for (const a of tmp) {
@@ -263,10 +269,6 @@ function App() {
 
   const qrcodeGameExport = () => {
     try {
-      JSON.stringify({
-        players: [...friends.filter(f => f.is_in_game), { name: me, is_in_game: true }],
-        seed: seed
-      });
       setShowQR(!showQR);
     } catch (error) {
       console.error('Error generating game data:', error);
@@ -274,12 +276,9 @@ function App() {
     }
   };
 
-  const qrcodeGameImport = (read_data: IDetectedBarcode[]) => {
-    if (read_data.length == 0) {
-      return;
-    }
+  const qrcodeGameImport = (read_data: string) => {
 
-    const compressed_byte_array = new TextEncoder().encode(read_data[0].rawValue);
+    const compressed_byte_array = Uint8Array.from(atob(read_data), c => c.charCodeAt(0));
 
     const data = JSON.parse(pako.inflate(compressed_byte_array, { to: 'string' }));
     setFriendsPermanent(data, Commands.Append);
@@ -287,18 +286,15 @@ function App() {
 
   const handleScan = (result: IDetectedBarcode[]) => {
     if (isScanning) {
-
-      qrcodeGameImport(result);
+      if (result.length == 0) {
+        return;
+      }
+      
+      qrcodeGameImport(result[0].rawValue);
       // Stop scanning after successful read
       setIsScanning(false);
     }
   };
-
-
-  const me = getMe();
-
-  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? "[]") as Array<Friend>);
-  const [seed, setSeed] = useState("");
 
 
   const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort();
@@ -309,6 +305,9 @@ function App() {
   const seedHash = hashCode(seed);
 
   const game = gameFromSeed(seedHash, players.length);
+
+  const gameSerializedBytes = pako.deflate(JSON.stringify([...friends.filter(a => a.is_in_game == true), { name: me, is_in_game: true }]));
+  const gameSerialized = btoa(String.fromCharCode(...gameSerializedBytes));
 
   return (
     <>
@@ -360,7 +359,7 @@ function App() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <QRCode
-              value={pako.deflate(JSON.stringify([...friends.filter(a => a.is_in_game == true), { name: me, is_in_game: true }])).toString()}
+              value={gameSerialized}
               size={200}
               bgColor="#ffffff"  // Explicit white background
               fgColor="#000000"
@@ -374,7 +373,6 @@ function App() {
           <button onClick={() => setIsScanning(!isScanning)}>
             {isScanning ? 'Stop Scanning' : 'Start Scanning'}
           </button>
-
           {isScanning && (
             <Scanner
               onScan={handleScan}
