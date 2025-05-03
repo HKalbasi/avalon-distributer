@@ -287,6 +287,7 @@ function App() {
 
   const handleScan = (result: IDetectedBarcode[]) => {
     if (isScanning) {
+
       qrcodeGameImport(result);
       // Stop scanning after successful read
       setIsScanning(false);
