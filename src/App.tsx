@@ -3,6 +3,7 @@ import QRCode from 'react-qr-code'
 import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner';
 import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
+import pako from 'pako'
 import './App.css'
 
 type Friend = {
@@ -277,7 +278,10 @@ function App() {
     if (read_data.length == 0) {
       return;
     }
-    const data = JSON.parse(read_data[0].rawValue);
+
+    const compressed_byte_array = new TextEncoder().encode(read_data[0].rawValue);
+
+    const data = JSON.parse(pako.inflate(compressed_byte_array, { to: 'string' }));
     setFriendsPermanent(data, Commands.Append);
   };
 
@@ -344,17 +348,26 @@ function App() {
         <input type="text" value={seed} onChange={e => setSeed(e.target.value)} />
         {/* QR Code Export Section */}
         <div>
-          <button onClick={qrcodeGameExport}>
-            Export Game Information
-          </button>
-          {/* Add QR Code display */}
-          {showQR && <QRCode
-            value={JSON.stringify([...friends, { name: me, is_in_game: true }])}
-            size={128}
-            bgColor="#ffffff"
-            fgColor="#000000"
-            level="Q"
-          />}
+        <button onClick={qrcodeGameExport}>
+          Export Game Information
+        </button>
+        {showQR && (
+          <div style={{
+            display: 'inline-block',
+            padding: '16px',
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}>
+            <QRCode
+              value={pako.deflate(JSON.stringify([...friends.filter(a => a.is_in_game == true), { name: me, is_in_game: true }])).toString()}
+              size={200}
+              bgColor="#ffffff"  // Explicit white background
+              fgColor="#000000"
+              level="Q"
+            />
+          </div>
+        )}
         </div>
         {/* QR Code Import Section */}
         <div>
