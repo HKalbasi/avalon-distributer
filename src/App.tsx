@@ -286,9 +286,7 @@ function App() {
   };
 
   const handleScan = (result: IDetectedBarcode[]) => {
-    alert("this is elon musk");
     if (isScanning) {
-
       qrcodeGameImport(result);
       // Stop scanning after successful read
       setIsScanning(false);
