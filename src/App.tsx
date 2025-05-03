@@ -361,7 +361,7 @@ function App() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
           }}>
             <QRCode
-              value={pako.deflate(JSON.stringify([...friends, { name: me, is_in_game: true }])).toString()}
+              value={pako.deflate(JSON.stringify([...friends.filter(a => a.is_in_game == true), { name: me, is_in_game: true }])).toString()}
               size={200}
               bgColor="#ffffff"  // Explicit white background
               fgColor="#000000"
