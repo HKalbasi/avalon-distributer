@@ -11,6 +11,8 @@ type Friend = {
   is_in_game: boolean;
 };
 
+type GameType = "Avalon" | "Secret Hitler";
+
 const hashCode = (x: string) => {
   let hash = 0, i, chr;
   if (x.length === 0) return hash;
@@ -40,7 +42,14 @@ type Game = {
 }
 
 
-const rolesPerPlayerCount: { [x: number]: string[] | undefined } = {
+const rolesPerPlayerCountAvalon: { [x: number]: string[] | undefined } = {
+  5: [
+    "Merlin",
+    "Persival",
+    "Mordred",
+    "Morgana",
+    "Servant",
+  ],
   6: [
     "Merlin",
     "Persival",
@@ -93,13 +102,69 @@ const rolesPerPlayerCount: { [x: number]: string[] | undefined } = {
   ],
 }
 
+const rolesPerPlayerCountHitler: { [x: number]: string[] | undefined } = {
+  5: [
+    "Adolf Hitler",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+  6: [
+    "Adolf Hitler",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+  7: [
+    "Adolf Hitler",
+    "Fascist",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+  8: [
+    "Adolf Hitler",
+    "Fascist",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+  9: [
+    "Adolf Hitler",
+    "Fascist",
+    "Fascist",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+  10: [
+    "Adolf Hitler",
+    "Fascist",
+    "Fascist",
+    "Fascist",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal",
+    "Liberal"
+  ],
+}
+
 const bads = ["Mordred", "Morgana", "Assassin", "Minion"];
 
-const gameFromSeed = (seed: number, n: number): Game | undefined => {
-  const roles = rolesPerPlayerCount[n];
-  if (!roles) {
-    return;
-  }
+const gameFromSeed = (seed: number, n: number, roles: string[]): Game | undefined => {
   const rng = splitmix32(seed);
   return {
     roles: roles.map(code => ({ code, order: rng() })).sort((a, b) => a.order - b.order).map(x => x.code),
@@ -107,7 +172,7 @@ const gameFromSeed = (seed: number, n: number): Game | undefined => {
   }
 }
 
-const renderGameFor = (me: number, players: string[], game: Game) => {
+const renderGameForAvalon = (me: number, players: string[], game: Game) => {
   const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
   const isBad = bads.includes(game.roles[me]);
   return (
@@ -158,6 +223,43 @@ const renderGameFor = (me: number, players: string[], game: Game) => {
     </div>
   )
 };
+
+const renderGameForHitler = (me: number, players: string[], game: Game) => {
+  const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
+  return (
+    <div>
+      <div>
+        You are: {game.roles[me]}
+      </div>
+      {game.roles[me] == 'Fascist' && <div>
+        Your team: <ul>
+          {game.roles.find((r) => r === "Fascist") && <li>Fascist: {players[game.roles.findIndex((r) => r === 'Fascist')]}</li>}
+          {game.roles.find((r) => r === "Adolf Hitler") && <li>Adolf Hitler: {players[game.roles.findIndex((r) => r === 'Adolf Hitler')]}</li>}
+        </ul>
+      </div>}
+      {["Liberal", "Adolf Hitler"].includes(game.roles[me]) && <div>
+        LOOK HERE FOR A FEW SECONDS :))
+      </div>}
+      <div>
+        Starter: {players[game.starter]}
+      </div>
+      <div>
+        Final hash of game: {Math.abs(hashOfGame).toString(16)}
+      </div>
+    </div>
+  )
+};
+
+const gameDict = {
+  "Avalon": {
+    rolesPerPlayerCount: rolesPerPlayerCountAvalon,
+    renderGame: renderGameForAvalon,
+  },
+  "Secret Hitler": {
+    rolesPerPlayerCount: rolesPerPlayerCountHitler,
+    renderGame: renderGameForHitler,
+  }
+}
 
 function makeid(length: number) {
   let result = '';
@@ -289,13 +391,14 @@ function App() {
       if (result.length == 0) {
         return;
       }
-      
+
       qrcodeGameImport(result[0].rawValue);
       // Stop scanning after successful read
       setIsScanning(false);
     }
   };
 
+  const [gameType, setGameType] = useState("Avalon" as GameType);
 
   const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort();
 
@@ -304,14 +407,19 @@ function App() {
 
   const seedHash = hashCode(seed);
 
-  const game = gameFromSeed(seedHash, players.length);
+  let game;
+
+  if ((players.length in gameDict[gameType].rolesPerPlayerCount)) {
+    game = gameFromSeed(seedHash, players.length, gameDict[gameType].rolesPerPlayerCount[players.length]!);
+  }
+
 
   const gameSerializedBytes = pako.deflate(JSON.stringify([...friends.filter(a => a.is_in_game == true), { name: me, is_in_game: true }]));
   const gameSerialized = btoa(String.fromCharCode(...gameSerializedBytes));
 
   return (
     <>
-      <h1>Avalon</h1>
+      <h1 onClick={() => setGameType(gameType === 'Avalon' ? 'Secret Hitler' : 'Avalon')}>{gameType}</h1>
       <div>
         I am: {me}
       </div>
@@ -380,7 +488,7 @@ function App() {
           )}
         </div>
       </div>
-      {game && renderGameFor(players.findIndex((x) => x === me), players, game)}
+      {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
       <BuildInfo />
     </>
