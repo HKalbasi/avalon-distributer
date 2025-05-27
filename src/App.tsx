@@ -226,9 +226,6 @@ const renderGameForAvalon = (me: number, players: string[], game: Game) => {
 
 const renderGameForHitler = (me: number, players: string[], game: Game) => {
   const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
-  // console.log(">>>>>>> players : ", players);
-  console.log(">>>>>>> player_roles[] : ", players[game.roles.findIndex((r) => ["Adolf Hitler", "Fascist"].includes(r))]);
-  // console.log(">>>>>>> index of hitler : ", game.roles.findIndex((r) => r === 'Adolf Hitler'));
   return (
     <div>
       <div>
