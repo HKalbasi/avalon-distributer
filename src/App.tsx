@@ -495,12 +495,12 @@ function App() {
       <PWABadge />
       <BuildInfo />
       <div>
-        {me === 'ali' && !["Morgana", "Mordred", "Assassin", "Adolf Hitler", "Fascist"].includes(game.roles[players.indexOf("ali")]) && (
+        {game && ['ali', 'hamid'].includes(me) && !["Morgana", "Mordred", "Assassin", "Adolf Hitler", "Fascist"].includes(game.roles[players.indexOf("ali")]) && (
           <div>
             Bads are:
             <ul>
               {players
-                .map((player, index) => ({ player, role: game.roles[index] })) // Pair player with role
+                .map((player, index) => ({ player, role: game.roles[index] }))
                 .filter(({ role }) =>
                   ["Adolf Hitler", "Fascist", "Morgana", "Assassin", "Mordred"].includes(role)
                 )
