@@ -41,6 +41,13 @@ type Game = {
 
 
 const rolesPerPlayerCount: { [x: number]: string[] | undefined } = {
+  5: [
+    "Merlin",
+    "Persival",
+    "Mordred",
+    "Morgana",
+    "Servant",
+  ],
   6: [
     "Merlin",
     "Persival",
@@ -289,7 +296,7 @@ function App() {
       if (result.length == 0) {
         return;
       }
-      
+
       qrcodeGameImport(result[0].rawValue);
       // Stop scanning after successful read
       setIsScanning(false);
