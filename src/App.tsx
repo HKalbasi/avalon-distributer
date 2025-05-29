@@ -235,7 +235,7 @@ const renderGameForHitler = (me: number, players: string[], game: Game) => {
           <ul>
             {game.roles
               .map((role, index) =>
-                role === "Fascist" ? (
+                role === "Fascist" && me != index ? (
                   <li key={index}>Fascist: {players[index]}</li>
                 ) : null
               )
