@@ -228,26 +228,48 @@ const renderGameForHitler = (me: number, players: string[], game: Game) => {
   const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
   return (
     <div>
-      <div>
-        You are: {game.roles[me]}
-      </div>
-      {game.roles[me] == 'Fascist' && <div>
-        Your team: <ul>
-          {game.roles.find((r) => r === "Fascist") && <li>Fascist: {players[game.roles.findIndex((r) => r === 'Fascist')]}</li>}
-          {game.roles.find((r) => r === "Adolf Hitler") && <li>Adolf Hitler: {players[game.roles.findIndex((r) => r === 'Adolf Hitler')]}</li>}
-        </ul>
-      </div>}
-      {["Liberal", "Adolf Hitler"].includes(game.roles[me]) && <div>
-        LOOK HERE FOR A FEW SECONDS :))
-      </div>}
-      <div>
-        Starter: {players[game.starter]}
-      </div>
-      <div>
-        Final hash of game: {Math.abs(hashOfGame).toString(16)}
-      </div>
+      <div>You are: {game.roles[me]}</div>
+      {game.roles[me] == "Fascist" && (
+        <div>
+          Your team:{" "}
+          <ul>
+            {game.roles
+              .map((role, index) =>
+                role === "Fascist" && me != index ? (
+                  <li key={index}>Fascist: {players[index]}</li>
+                ) : null
+              )
+              .filter(Boolean)}
+            {game.roles.find((r) => r === "Adolf Hitler") && (
+              <li>
+                Adolf Hitler:{" "}
+                {players[game.roles.findIndex((r) => r === "Adolf Hitler")]}
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+      {game.roles[me] == "Liberal" && (
+        <div>LOOK HERE FOR A FEW SECONDS :))</div>
+      )}
+      {game.roles[me] === "Adolf Hitler" &&
+        (() => {
+          if (players.length < 7) {
+            return game.roles
+              .map((role, index) =>
+                role === "Fascist" ? (
+                  <li key={index}>Fascist: {players[index]}</li>
+                ) : null
+              )
+              .filter(Boolean);
+          } else {
+            return <div>LOOK HERE FOR A FEW SECONDS :))</div>;
+          }
+        })()}
+      <div>Starter: {players[game.starter]}</div>
+      <div>Final hash of game: {Math.abs(hashOfGame).toString(16)}</div>
     </div>
-  )
+  );
 };
 
 const gameDict = {

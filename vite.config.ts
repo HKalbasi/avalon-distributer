@@ -7,33 +7,48 @@ export default defineConfig({
   define: {
     __BUILD_DATE__: new Date(),
   },
-  plugins: [react(), VitePWA({
-    registerType: 'autoUpdate',
-    injectRegister: false,
+  plugins: [
+    react(),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: false,
 
-    pwaAssets: {
-      disabled: false,
-      config: true,
-    },
+      pwaAssets: {
+        disabled: false,
+        config: true,
+      },
 
-    manifest: {
-      name: 'avalon-distributer',
-      short_name: 'avalon-distributer',
-      description: 'avalon-distributer',
-      theme_color: '#ffffff',
-    },
+      manifest: {
+        name: "avalon-distributer",
+        short_name: "avalon-distributer",
+        description: "avalon-distributer",
+        theme_color: "#ffffff",
+      },
 
-    workbox: {
-      globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
-      cleanupOutdatedCaches: true,
-      clientsClaim: true,
-    },
-
-    devOptions: {
-      enabled: false,
-      navigateFallback: 'index.html',
-      suppressWarnings: true,
-      type: 'module',
-    },
-  })],
-})
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,ico}"],
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        runtimeCaching: [
+          {
+            urlPattern: () => true,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "everything-cache",
+              networkTimeoutSeconds: 2,
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
+      },
+      devOptions: {
+        enabled: false,
+        navigateFallback: "index.html",
+        suppressWarnings: true,
+        type: "module",
+      },
+    }),
+  ],
+});
