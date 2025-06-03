@@ -1,10 +1,10 @@
 # Simple workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
-
 on:
   pull_request:
     branches: ["main"]
-
+  push:
+    branches: ["main"]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -42,5 +42,6 @@ jobs:
           # Upload entire repository
           path: "dist"
       - name: Deploy to GitHub Pages
+        if: github.event_name == 'push'
         id: deployment
         uses: actions/deploy-pages@v4
