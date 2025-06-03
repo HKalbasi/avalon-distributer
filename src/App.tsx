@@ -422,6 +422,7 @@ function App() {
 
   const [gameType, setGameType] = useState("Avalon" as GameType);
 
+
   const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort();
 
   // sha256 of players to ensure game is same for every one
@@ -507,6 +508,22 @@ function App() {
             <Scanner
               onScan={handleScan}
             />
+          )}
+        </div>
+        <div>
+          {friends.map((friend, i) =>
+            i === 0 ? (
+                <button
+                  onClick={() =>
+                    setFriendsPermanent(
+                      friends.map((f) => ({ ...f, is_in_game: false })),
+                      Commands.Toggle
+                    )
+                  }
+                >
+                  Leave All
+                </button>
+            ) : null
           )}
         </div>
       </div>
