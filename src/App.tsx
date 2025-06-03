@@ -511,19 +511,21 @@ function App() {
           )}
         </div>
         <div>
-          {friends.length > 0 && (
-            <button
-              onClick={() =>
-                setFriendsPermanent(
-                  friends.map((f) => ({ ...f, is_in_game: false })),
-                  Commands.Toggle
-                )
-              }
-            >
-              Leave All
-            </button>
+          {friends.map((friend, i) =>
+            i === 0 ? (
+                <button
+                  onClick={() =>
+                    setFriendsPermanent(
+                      friends.map((f) => ({ ...f, is_in_game: false })),
+                      Commands.Toggle
+                    )
+                  }
+                >
+                  Leave All
+                </button>
+            ) : null
           )}
-      </div>
+        </div>
       </div>
       {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
