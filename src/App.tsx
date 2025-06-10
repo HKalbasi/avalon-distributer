@@ -428,7 +428,7 @@ function App() {
   // sha256 of players to ensure game is same for every one
   const playersHash = hashCode(players.join('#'));
 
-  const seedHash = hashCode(seed);
+  const seedHash = hashCode(seed) + playersHash;
 
   let game;
 
