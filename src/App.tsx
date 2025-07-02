@@ -5,6 +5,7 @@ import PWABadge from './PWABadge.tsx'
 import BuildInfo from './BuildInfo.tsx'
 import pako from 'pako'
 import './App.css'
+import EncryptGameInfo from './EncryptGameInfo.tsx';
 
 type Friend = {
   name: string;
@@ -527,6 +528,7 @@ function App() {
       </div>
       {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
+      <EncryptGameInfo textToEncrypt="hello world" />
       <BuildInfo />
     </>
   )
