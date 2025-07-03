@@ -173,8 +173,12 @@ const gameFromSeed = (seed: number, n: number, roles: string[]): Game | undefine
   }
 }
 
-const renderGameForAvalon = (me: number, players: string[], game: Game) => {
+const getFinalHashOfGame = (players: string[], game: Game) => {
   const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
+  return Math.abs(hashOfGame).toString(16);
+}
+
+const renderGameForAvalon = (me: number, players: string[], game: Game) => {
   const isBad = bads.includes(game.roles[me]);
   return (
     <div>
@@ -219,14 +223,23 @@ const renderGameForAvalon = (me: number, players: string[], game: Game) => {
         Starter: {players[game.starter]}
       </div>
       <div>
-        Final hash of game: {Math.abs(hashOfGame).toString(16)}
+        Final hash of game: {getFinalHashOfGame(players, game)}
       </div>
     </div>
   )
 };
 
+const encryptGameInfoForAvalon = (players: string[], game: Game) => {
+  const playerRoleMap: Record<string, string> = {};
+  players.forEach((player, idx) => {
+    playerRoleMap[player] = game.roles[idx];
+  });
+
+  const gameInfoString = JSON.stringify([playerRoleMap, {"final hash of game": getFinalHashOfGame(players, game)}]);
+  return <EncryptGameInfo textToEncrypt={gameInfoString} />;
+}
+
 const renderGameForHitler = (me: number, players: string[], game: Game) => {
-  const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'));
   return (
     <div>
       <div>You are: {game.roles[me]}</div>
@@ -268,7 +281,7 @@ const renderGameForHitler = (me: number, players: string[], game: Game) => {
           }
         })()}
       <div>Starter: {players[game.starter]}</div>
-      <div>Final hash of game: {Math.abs(hashOfGame).toString(16)}</div>
+      <div>Final hash of game: {getFinalHashOfGame(players, game)}</div>
     </div>
   );
 };
@@ -277,10 +290,12 @@ const gameDict = {
   "Avalon": {
     rolesPerPlayerCount: rolesPerPlayerCountAvalon,
     renderGame: renderGameForAvalon,
+    encryptGameInfo: encryptGameInfoForAvalon
   },
   "Secret Hitler": {
     rolesPerPlayerCount: rolesPerPlayerCountHitler,
     renderGame: renderGameForHitler,
+    encryptGameInfo: null
   }
 }
 
@@ -527,8 +542,8 @@ function App() {
       </div>
       </div>
       {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
+      {game && gameDict[gameType].encryptGameInfo?.(players, game)}
       <PWABadge />
-      <EncryptGameInfo textToEncrypt="hello world" />
       <BuildInfo />
     </>
   )
