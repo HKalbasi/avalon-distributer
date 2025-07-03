@@ -541,8 +541,8 @@ function App() {
           )}
       </div>
       </div>
-      {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       {game && gameDict[gameType].encryptGameInfo?.(players, game)}
+      {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
       <BuildInfo />
     </>

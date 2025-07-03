@@ -3,15 +3,30 @@
 import { useState, useEffect } from "react";
 import CryptoJS from "crypto-js";
 
-function encryptMessageWithCryptoJS(message: string, password: string) {
+const encryptMessageWithCryptoJS = (message: string, password: string) => {
   // AES encrypt with password
   const ciphertext = CryptoJS.AES.encrypt(message, password).toString();
   return ciphertext;
 }
 
+const copyToClipboardFallback = (text: string) => {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed"; // Prevent scrolling to bottom of page in MS Edge.
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    document.execCommand("copy");
+    // alert("Encrypted game info copied to clipboard!");
+  } catch (err) {
+    alert("Failed to copy to clipboard." + err);
+  }
+  document.body.removeChild(textarea);
+}
+
 export const EncryptGameInfo = ({ textToEncrypt }: { textToEncrypt: string }) => {
   const [encryptedText, setEncryptedText] = useState<string>("");
-
   useEffect(() => {
     const encrypt = async () => {
       try {
@@ -31,8 +46,17 @@ export const EncryptGameInfo = ({ textToEncrypt }: { textToEncrypt: string }) =>
 
   return (
     <div>
-      <h4>Game Encrypted Information:</h4>
-      {encryptedText}
+      <button onClick={() => {
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(encryptedText)
+              .then(() => alert("Encrypted game info copied to clipboard!"))
+              .catch(() => copyToClipboardFallback(encryptedText));
+          } else {
+            copyToClipboardFallback(encryptedText);
+          }
+      }}>
+        Encrypt & Copy Game Info
+      </button>
     </div>
   );
 };
