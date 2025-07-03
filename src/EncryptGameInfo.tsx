@@ -5,7 +5,7 @@ import CryptoJS from "crypto-js";
 
 const encryptMessageWithCryptoJS = (message: string, password: string) => {
   // AES encrypt with password
-  const ciphertext = CryptoJS.AES.encrypt(message, password).toString();
+  const ciphertext = btoa(CryptoJS.AES.encrypt(message, password).toString());
   return ciphertext;
 }
 
