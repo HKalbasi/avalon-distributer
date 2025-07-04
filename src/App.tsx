@@ -235,7 +235,13 @@ const encryptGameInfoForAvalon = (players: string[], game: Game) => {
     playerRoleMap[player] = game.roles[idx];
   });
 
-  const gameInfoString = JSON.stringify([playerRoleMap, {"final_hash_of_game": getFinalHashOfGame(players, game)}]);
+  const gameInfoString = JSON.stringify({
+    players: playerRoleMap,
+    game_info: {
+      final_hash_of_game: getFinalHashOfGame(players, game)
+    }
+  });
+
   return <EncryptGameInfo textToEncrypt={gameInfoString} />;
 }
 
