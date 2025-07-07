@@ -229,7 +229,7 @@ const renderGameForAvalon = (me: number, players: string[], game: Game) => {
   )
 };
 
-const encryptGameInfoForAvalon = (players: string[], game: Game) => {
+const encryptGameInfoForAvalon = (players: string[], game: Game, seed: string) => {
   const playerRoleMap: Record<string, string> = {};
   players.forEach((player, idx) => {
     playerRoleMap[player] = game.roles[idx];
@@ -238,7 +238,9 @@ const encryptGameInfoForAvalon = (players: string[], game: Game) => {
   const gameInfoString = JSON.stringify({
     players: playerRoleMap,
     game_info: {
-      final_hash_of_game: getFinalHashOfGame(players, game)
+      timestamp: Math.floor(new Date().getTime() / 1000),
+      final_hash_of_game: getFinalHashOfGame(players, game),
+      game_seed: seed
     }
   });
 
@@ -547,7 +549,7 @@ function App() {
           )}
       </div>
       </div>
-      {game && gameDict[gameType].encryptGameInfo?.(players, game)}
+      {game && gameDict[gameType].encryptGameInfo?.(players, game, seed)}
       {game && gameDict[gameType].renderGame(players.findIndex((x) => x === me), players, game)}
       <PWABadge />
       <BuildInfo />
