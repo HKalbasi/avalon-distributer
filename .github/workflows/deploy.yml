@@ -1,8 +1,6 @@
 # Simple workflow for deploying static content to GitHub Pages
 name: Deploy static content to Pages
 on:
-  pull_request:
-    branches: ["main"]
   push:
     branches: ["main"]
   # Allows you to run this workflow manually from the Actions tab
