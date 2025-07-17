@@ -29,7 +29,6 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
   const [showAlert, setShowAlert] = useState(false);
 
   const encrypt = () => {
-    alert(JSON.stringify(textToEncrypt))
     try {
       return encryptMessageWithCryptoJS(
         JSON.stringify(textToEncrypt),
