@@ -226,7 +226,7 @@ function makeid(length: number) {
 }
 
 const normalizeName = (name: string): string => {
-  return name.toLowerCase().trim()
+  return name.toLowerCase().trim()              
 }
 
 const getMe = (): string => {
