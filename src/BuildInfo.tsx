@@ -1,12 +1,10 @@
-
 const BuildInfo = () => {
     return (
         <div>
-            Build {__BUILD_DATE__}
+            version v2.0.0
         </div>
     );
 };
-
 
 
 export default BuildInfo;
