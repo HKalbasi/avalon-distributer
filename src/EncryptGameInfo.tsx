@@ -65,19 +65,19 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
             <h2 className="text-lg font-bold">Who is the winner?</h2>
             <div className="flex flex-col gap-2">
               <button
-                onClick={() => handleClick("Shar")}
+                onClick={() => handleClick("shahr")}
                 className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
               >
-                Shar
+                Shahr
               </button>
               <button
-                onClick={() => handleClick("Merlin Shot")}
+                onClick={() => handleClick("merlin shot")}
                 className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
               >
                 Merlin Shot
               </button>
               <button
-                onClick={() => handleClick("3 Fail")}
+                onClick={() => handleClick("3 fail")}
                 className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
               >
                 3 Fail
