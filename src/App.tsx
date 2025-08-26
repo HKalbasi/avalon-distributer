@@ -1,285 +1,118 @@
-import { useState } from 'react'
-import QRCode from 'react-qr-code'
-import { IDetectedBarcode, Scanner } from '@yudiel/react-qr-scanner'
-import PWABadge from './PWABadge.tsx'
-import BuildInfo from './BuildInfo.tsx'
+import { useState, useEffect, useMemo } from 'react'
+import { IDetectedBarcode } from '@yudiel/react-qr-scanner'
 import pako from 'pako'
-import EncryptGameInfo from './EncryptGameInfo.tsx'
 
-type Friend = {
-  name: string
-  is_in_game: boolean
-}
+// Components
+import Dialog from './components/common/Dialog'
+import PWABadge from './components/common/PWABadge'
+import BuildInfo from './components/common/BuildInfo'
+import Header from './components/layout/Header'
+import UserInfo from './components/layout/UserInfo'
+import FriendsManager from './components/friends/FriendsManager'
+import QRCodeSection from './components/friends/QRCodeSection'
+import GameSetup from './components/game/GameSetup'
+import GameInfo from './components/game/GameInfo'
+import GameHistory from './pages/GameHistory'
+import InitialSetup from './pages/InitialSetup'
 
-type GameType = 'Avalon' | 'Secret Hitler'
+// Hooks
+import { useDialog } from './hooks/useDialog'
+import { useGameLogic } from './hooks/useGameLogic'
 
-const hashCode = (x: string) => {
-  let hash = 0,
-    i,
-    chr
-  if (x.length === 0) return hash
-  for (i = 0; i < x.length; i++) {
-    chr = x.charCodeAt(i)
-    hash = (hash << 5) - hash + chr
-    hash |= 0 // Convert to 32bit integer
-  }
-  return hash
-}
-
-const splitmix32 = (a: number) => {
-  return () => {
-    a |= 0
-    a = (a + 0x9e3779b9) | 0
-    let t = a ^ (a >>> 16)
-    t = Math.imul(t, 0x21f0aaad)
-    t = t ^ (t >>> 15)
-    t = Math.imul(t, 0x735a2d97)
-    return ((t = t ^ (t >>> 15)) >>> 0) / 4294967296
-  }
-}
-
-type Game = {
-  roles: string[]
-  starter: number
-}
-
-const rolesPerPlayerCountAvalon: { [x: number]: string[] | undefined } = {
-  5: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Servant'],
-  6: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Servant', 'Servant'],
-  7: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Assassin', 'Servant', 'Servant'],
-  8: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Assassin', 'Servant', 'Servant', 'Servant'],
-  9: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Assassin', 'Servant', 'Servant', 'Servant', 'Servant'],
-  10: ['Merlin', 'Persival', 'Mordred', 'Morgana', 'Assassin', 'Minion', 'Servant', 'Servant', 'Servant', 'Servant'],
-}
-
-const rolesPerPlayerCountHitler: { [x: number]: string[] | undefined } = {
-  5: ['Adolf Hitler', 'Fascist', 'Liberal', 'Liberal', 'Liberal'],
-  6: ['Adolf Hitler', 'Fascist', 'Liberal', 'Liberal', 'Liberal', 'Liberal'],
-  7: ['Adolf Hitler', 'Fascist', 'Fascist', 'Liberal', 'Liberal', 'Liberal', 'Liberal'],
-  8: ['Adolf Hitler', 'Fascist', 'Fascist', 'Liberal', 'Liberal', 'Liberal', 'Liberal', 'Liberal'],
-  9: ['Adolf Hitler', 'Fascist', 'Fascist', 'Fascist', 'Liberal', 'Liberal', 'Liberal', 'Liberal', 'Liberal'],
-  10: [
-    'Adolf Hitler',
-    'Fascist',
-    'Fascist',
-    'Fascist',
-    'Liberal',
-    'Liberal',
-    'Liberal',
-    'Liberal',
-    'Liberal',
-    'Liberal',
-  ],
-}
-
-const bads = ['Mordred', 'Morgana', 'Assassin', 'Minion']
-
-const gameFromSeed = (seed: number, n: number, roles: string[]): Game | undefined => {
-  const rng = splitmix32(seed)
-  return {
-    roles: roles
-      .map(code => ({ code, order: rng() }))
-      .sort((a, b) => a.order - b.order)
-      .map(x => x.code),
-    starter: Math.floor(rng() * n),
-  }
-}
-
-const getFinalHashOfGame = (players: string[], game: Game) => {
-  const hashOfGame = hashCode(game.roles.join('#') + game.starter + players.join('$'))
-  return Math.abs(hashOfGame).toString(16)
-}
-
-const renderGameForAvalon = (me: number, players: string[], game: Game) => {
-  const isBad = bads.includes(game.roles[me])
-  return (
-    <div className='flex flex-col gap-5'>
-      <div>
-        Final hash of game: <span className='text-warning'>{getFinalHashOfGame(players, game)}</span>
-      </div>
-      <div>You are: {game.roles[me]}</div>
-      {isBad && (
-        <div>
-          <p className='mb-2'>Your team</p>
-          <div className='flex flex-col gap-1'>
-            {game.roles.find(r => r === 'Mordred') && (
-              <div>Mordred: {players[game.roles.findIndex(r => r === 'Mordred')]}</div>
-            )}
-            {game.roles.find(r => r === 'Morgana') && (
-              <div>Morgana: {players[game.roles.findIndex(r => r === 'Morgana')]}</div>
-            )}
-            {game.roles.find(r => r === 'Assassin') && (
-              <div>Assassin: {players[game.roles.findIndex(r => r === 'Assassin')]}</div>
-            )}
-            {game.roles.find(r => r === 'Minion') && (
-              <div>Minion: {players[game.roles.findIndex(r => r === 'Minion')]}</div>
-            )}
-          </div>
-        </div>
-      )}
-      {game.roles[me] === 'Merlin' && (
-        <div>
-          <p className='mb-2'>Bads you know</p>
-
-          <div className='flex flex-col gap-1'>
-            {game.roles.map((role, i) => bads.includes(role) && role !== 'Mordred' && <div key={i}>{players[i]}</div>)}
-          </div>
-        </div>
-      )}
-      {game.roles[me] === 'Persival' && (
-        <div>
-          You know:{' '}
-          <ul>
-            {game.roles.map((role, i) => (role === 'Merlin' || role === 'Morgana') && <li key={i}>{players[i]}</li>)}
-          </ul>
-          As merlin and morgana but you don't know kodoom kodoome
-        </div>
-      )}
-      {game.roles[me] === 'Servant' && (
-        <div>
-          You know nothing, but pretend you are reading name of your team or name of bads or name of merlin and morgana.
-        </div>
-      )}
-      <div>Starter: {players[game.starter]}</div>
-    </div>
-  )
-}
-
-const encryptGameInfoForAvalon = (players: string[], game: Game, seed: string) => {
-  const playerRoleMap: Record<string, string> = {}
-  players.forEach((player, idx) => {
-    playerRoleMap[player] = game.roles[idx]
-  })
-
-  const gameInfoString = {
-    players: playerRoleMap,
-    game_info: {
-      timestamp: Math.floor(new Date().getTime() / 1000),
-      final_hash_of_game: getFinalHashOfGame(players, game),
-      game_seed: seed,
-      winner: '',
-    },
-  }
-
-  return <EncryptGameInfo textToEncrypt={gameInfoString} />
-}
-
-const renderGameForHitler = (me: number, players: string[], game: Game) => {
-  return (
-    <div>
-      <div>You are: {game.roles[me]}</div>
-      {game.roles[me] == 'Fascist' && (
-        <div>
-          Your team:{' '}
-          <ul>
-            {game.roles
-              .map((role, index) =>
-                role === 'Fascist' && me != index ? <li key={index}>Fascist: {players[index]}</li> : null,
-              )
-              .filter(Boolean)}
-            {game.roles.find(r => r === 'Adolf Hitler') && (
-              <li>Adolf Hitler: {players[game.roles.findIndex(r => r === 'Adolf Hitler')]}</li>
-            )}
-          </ul>
-        </div>
-      )}
-      {game.roles[me] == 'Liberal' && <div>LOOK HERE FOR A FEW SECONDS :))</div>}
-      {game.roles[me] === 'Adolf Hitler' &&
-        (() => {
-          if (players.length < 7) {
-            return game.roles
-              .map((role, index) => (role === 'Fascist' ? <li key={index}>Fascist: {players[index]}</li> : null))
-              .filter(Boolean)
-          } else {
-            return <div>LOOK HERE FOR A FEW SECONDS :))</div>
-          }
-        })()}
-      <div>Starter: {players[game.starter]}</div>
-      <div>Final hash of game: {getFinalHashOfGame(players, game)}</div>
-    </div>
-  )
-}
-
-const gameDict = {
-  Avalon: {
-    rolesPerPlayerCount: rolesPerPlayerCountAvalon,
-    renderGame: renderGameForAvalon,
-    encryptGameInfo: encryptGameInfoForAvalon,
-  },
-  'Secret Hitler': {
-    rolesPerPlayerCount: rolesPerPlayerCountHitler,
-    renderGame: renderGameForHitler,
-    encryptGameInfo: null,
-  },
-}
-
-function makeid(length: number) {
-  let result = ''
-  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789'
-  const charactersLength = characters.length
-  let counter = 0
-  while (counter < length) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength))
-    counter += 1
-  }
-  return result
-}
-
-const normalizeName = (name: string): string => {
-  return name.toLowerCase().trim()
-}
-
-const getMe = (): string => {
-  const permanentName = (name: string) => {
-    name = normalizeName(name)
-    localStorage.setItem('me', name)
-  }
-
-  let name = localStorage.getItem('me')
-  if (name) {
-    // To make sure the name is stored in standard/normalized format.
-    permanentName(name)
-    return name
-  }
-  name = window.prompt('Name?') ?? 'gav'
-  permanentName(name)
-  return name
-}
-
-const hasDuplicate = (list: string[]): boolean => {
-  const set = new Set(list)
-  return set.size !== list.length
-}
+// Types and Utils
+import { Friend, GameType, GameRecord, Commands } from './types'
+import { normalizeName } from './utils/nameUtils'
 
 function App() {
-  // Showing/Exporting QRCode
-  const [showQR, setShowQR] = useState(false)
+  // Dialog system
+  const { dialogState, closeDialog, showSuccess, showInfo, showError, showWarning, confirm, prompt } = useDialog()
 
-  // Scanning/Reading QRCode
-  const [isScanning, setIsScanning] = useState(false)
+  // Initial setup state
+  const [isInitialized, setIsInitialized] = useState(false)
+  const [me, setMe] = useState('')
 
-  const me = getMe()
+  // Initialize user
+  useEffect(() => {
+    const storedName = localStorage.getItem('me')
+    if (storedName) {
+      setMe(storedName)
+      setIsInitialized(true)
+    }
+  }, [])
 
-  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? '[]') as Array<Friend>)
-  const [seed, setSeed] = useState('')
-
-  enum Commands {
-    Add = 1,
-    Remove,
-    Toggle,
-    Append,
+  const handleInitialSetup = (name: string) => {
+    const normalizedName = normalizeName(name)
+    localStorage.setItem('me', normalizedName)
+    setMe(normalizedName)
+    setIsInitialized(true)
   }
 
-  const setFriendsPermanent = (x: Friend[], command: Commands) => {
+  // State
+  const [showQR, setShowQR] = useState(false)
+  const [isScanning, setIsScanning] = useState(false)
+  const [friends, setFriends] = useState(JSON.parse(localStorage.getItem('friends') ?? '[]') as Array<Friend>)
+  const [seed, setSeed] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [showFriends, setShowFriends] = useState(false)
+  const [gameType, setGameType] = useState('Avalon' as GameType)
+
+  // Computed values
+  const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort()
+  const { playersHash, game } = useGameLogic(players, gameType, seed)
+
+  // Game serialization
+  const gameSerializedBytes = pako.deflate(
+    JSON.stringify([
+      ...friends.filter(a => a.is_in_game),
+      {
+        name: me,
+        is_in_game: true,
+      },
+    ]),
+  )
+  const gameSerialized = btoa(String.fromCharCode(...gameSerializedBytes))
+
+  // Game history
+  const gameHistory = useMemo(() => {
+    return JSON.parse(localStorage.getItem('gameHistory') ?? '[]') as GameRecord[]
+  }, [showHistory])
+
+  // Friend management functions
+  const setFriendsPermanent = async (x: Friend[], command: Commands) => {
+    // Normalize all names first
     x.forEach(a => {
       a.name = normalizeName(a.name)
     })
 
     if (command == Commands.Add) {
-      if (hasDuplicate([...x.map(n => n.name), getMe()])) return
+      // Get all existing friend names (normalized)
+      const existingFriendNames = friends.map(f => normalizeName(f.name))
+      
+      // Check for duplicates among the new friends being added
+      const newFriendNames = x.filter(f => !existingFriendNames.includes(f.name)).map(f => f.name)
+      
+      // Check if any new friend name matches the current user
+      const hasCurrentUser = newFriendNames.some(name => name === normalizeName(me))
+      if (hasCurrentUser) {
+        await showError('You cannot add yourself as a friend!')
+        return
+      }
+      
+      // Check for duplicates within the new list
+      const uniqueNewNames = new Set(newFriendNames)
+      if (uniqueNewNames.size !== newFriendNames.length) {
+        await showError('Duplicate names in the list!')
+        return
+      }
+      
+      // Check if any new names already exist in friends list
+      const duplicatesFound = newFriendNames.filter(name => existingFriendNames.includes(name))
+      if (duplicatesFound.length > 0) {
+        await showError(`These names already exist: ${duplicatesFound.join(', ')}`)
+        return
+      }
     } else if (command == Commands.Append) {
       const tmp: Friend[] = []
-
       const current_friends = localStorage.getItem('friends')
 
       if (current_friends) {
@@ -290,14 +123,14 @@ function App() {
         for (const new_friend of x) {
           let exists = false
           for (const current_friend of current_friends_list) {
-            if (new_friend.name === current_friend.name) {
+            if (normalizeName(new_friend.name) === normalizeName(current_friend.name)) {
               current_friend.is_in_game = new_friend.is_in_game
               exists = true
               break
             }
           }
 
-          if (!exists && new_friend.name !== getMe()) {
+          if (!exists && normalizeName(new_friend.name) !== normalizeName(me)) {
             tmp.push(new_friend)
           }
         }
@@ -319,20 +152,154 @@ function App() {
     setFriends(x)
   }
 
-  const qrcodeGameExport = () => {
-    try {
-      setShowQR(!showQR)
-    } catch (error) {
-      console.error('Error generating game data:', error)
-      alert('Error generating export data')
+  // Handler functions
+  const handleChangeName = async () => {
+    const confirmed = await confirm('Do you want to change your name? This will reset your current session.')
+    if (confirmed) {
+      const newName = await prompt(
+        'Enter your new name:',
+        'Change Name',
+        'Your new name...',
+        me
+      )
+      if (newName && newName !== me) {
+        const normalizedName = normalizeName(newName)
+        localStorage.setItem('me', normalizedName)
+        setMe(normalizedName)
+        await showSuccess('Name changed successfully!')
+      }
     }
   }
 
-  const qrcodeGameImport = (read_data: string) => {
-    const compressed_byte_array = Uint8Array.from(atob(read_data), c => c.charCodeAt(0))
+  const handleAddFriend = async () => {
+    const name = await prompt(
+      'Enter friend\'s name:',
+      'Add Friend',
+      'Friend name...'
+    )
+    if (name) {
+      const normalizedNewName = normalizeName(name)
+      
+      // Check if it's the current user
+      if (normalizedNewName === normalizeName(me)) {
+        await showError('You cannot add yourself as a friend!')
+        return
+      }
+      
+      // Check if already exists
+      const alreadyExists = friends.some(f => normalizeName(f.name) === normalizedNewName)
+      if (alreadyExists) {
+        await showError('This friend already exists!')
+        return
+      }
+      
+      await setFriendsPermanent(
+        [
+          ...friends,
+          {
+            name: normalizedNewName,
+            is_in_game: false,
+          },
+        ],
+        Commands.Add,
+      )
+    }
+  }
 
-    const data = JSON.parse(pako.inflate(compressed_byte_array, { to: 'string' }))
-    setFriendsPermanent(data, Commands.Append)
+  const handleBatchAddFriends = async () => {
+    const names = await prompt(
+      'Enter multiple names separated by commas:',
+      'Batch Add Friends',
+      'John, Jane, Bob...'
+    )
+    if (names) {
+      const nameList = names.split(',').map((n: string) => n.trim()).filter((n: string) => n.length > 0)
+      const normalizedMe = normalizeName(me)
+      const existingNormalizedNames = friends.map(f => normalizeName(f.name))
+      
+      // Process and validate each name
+      const validNewFriends: Friend[] = []
+      const duplicates: string[] = []
+      const invalidNames: string[] = []
+      
+      for (const name of nameList) {
+        const normalizedName = normalizeName(name)
+        
+        if (normalizedName === normalizedMe) {
+          invalidNames.push(name + ' (yourself)')
+        } else if (existingNormalizedNames.includes(normalizedName)) {
+          duplicates.push(name)
+        } else if (!validNewFriends.some(f => f.name === normalizedName)) {
+          validNewFriends.push({ name: normalizedName, is_in_game: false })
+        }
+      }
+      
+      // Report issues if any
+      if (duplicates.length > 0 || invalidNames.length > 0) {
+        let errorMsg = ''
+        if (duplicates.length > 0) {
+          errorMsg += `Already exist: ${duplicates.join(', ')}\n`
+        }
+        if (invalidNames.length > 0) {
+          errorMsg += `Invalid: ${invalidNames.join(', ')}`
+        }
+        await showWarning(errorMsg)
+      }
+      
+      // Add valid new friends
+      if (validNewFriends.length > 0) {
+        setFriendsPermanent([...friends, ...validNewFriends], Commands.Add)
+        await showSuccess(`Added ${validNewFriends.length} new friends!`)
+      } else if (duplicates.length === 0 && invalidNames.length === 0) {
+        await showInfo('No names to add.')
+      }
+    }
+  }
+
+  const handleToggleFriend = (friendName: string) => {
+    setFriendsPermanent(
+      friends.map((f) => (f.name === friendName ? { ...f, is_in_game: !f.is_in_game } : f)),
+      Commands.Toggle,
+    )
+  }
+
+  const handleRemoveFriend = async (friendName: string) => {
+    const confirmed = await confirm(`Remove ${friendName} from friends?`)
+    if (confirmed) {
+      setFriendsPermanent(
+        friends.filter(f => f.name !== friendName),
+        Commands.Remove,
+      )
+    }
+  }
+
+  const handleClearAll = () => {
+    setFriendsPermanent(
+      friends.map(f => ({ ...f, is_in_game: false })),
+      Commands.Toggle,
+    )
+  }
+
+  const handleClearHistory = async () => {
+    const confirmed = await confirm('Clear all game history?', 'Clear History')
+    if (confirmed) {
+      localStorage.removeItem('gameHistory')
+      setShowHistory(false)
+      setTimeout(() => setShowHistory(true), 100) // Force re-render
+      await showSuccess('Game history cleared!')
+    }
+  }
+
+  const qrcodeGameImport = async (read_data: string) => {
+    try {
+      const compressed_byte_array = Uint8Array.from(atob(read_data), c => c.charCodeAt(0))
+      const data = JSON.parse(pako.inflate(compressed_byte_array, { to: 'string' }))
+      setFriendsPermanent(data, Commands.Append)
+      await showSuccess('Friends imported successfully!')
+    } catch (error) {
+      console.error('Error importing data:', error)
+      await showError('Failed to import QR code data')
+    }
   }
 
   const handleScan = (result: IDetectedBarcode[]) => {
@@ -347,189 +314,124 @@ function App() {
     }
   }
 
-  const [gameType, setGameType] = useState('Avalon' as GameType)
-
-  const players = [...friends.filter(f => f.is_in_game).map(f => f.name), me].sort()
-
-  // sha256 of players to ensure game is same for every one
-  const playersHash = hashCode(players.join('#'))
-
-  const seedHash = hashCode(seed) + playersHash
-
-  let game
-
-  if (players.length in gameDict[gameType].rolesPerPlayerCount) {
-    game = gameFromSeed(seedHash, players.length, gameDict[gameType].rolesPerPlayerCount[players.length]!)
+  // Show initial setup if needed
+  if (!isInitialized) {
+    return <InitialSetup onComplete={handleInitialSetup} />
   }
 
-  const gameSerializedBytes = pako.deflate(
-    JSON.stringify([
-      ...friends.filter(a => a.is_in_game),
-      {
-        name: me,
-        is_in_game: true,
-      },
-    ]),
-  )
-  const gameSerialized = btoa(String.fromCharCode(...gameSerializedBytes))
-
-  const [showFriends, setShowFriends] = useState(false)
-
   return (
-    <div className='container text-center px-10 pt-2'>
-      <h1
-        className='text-4xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary border-b-2 border-primary/20'
-        onClick={() => setGameType(gameType === 'Avalon' ? 'Secret Hitler' : 'Avalon')}
-      >
-        {gameType}
-      </h1>
-      <div className='flex justify-between items-center rounded-md mt-2 px-4 py-2 ro border-2 border-secondary/50'>
-        <p>your name: {me}</p>
-        <button onClick={() => alert('you are hacked... 😈')}>
-          <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='size-4'>
-            <path d='M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32L19.513 8.2Z' />
-          </svg>
-        </button>
-      </div>
+    <div className='min-h-screen bg-gray-50'>
+      <div className='container mx-auto max-w-2xl px-4 py-6'>
+        <Header gameType={gameType} onGameTypeChange={setGameType} />
+        
+        <UserInfo userName={me} onChangeName={handleChangeName} />
 
-      <div className='my-4 border-b-2 border-primary/50 pb-2'>
-        <div className='flex flex-col gap-3'>
-          <button className='btn btn-primary btn-dash' onClick={() => setShowFriends(!showFriends)}>
-            {showFriends ? `hide ypur friends` : `show ypur friends`}
-          </button>
-          {showFriends && (
-            <>
-              <button
-                className='btn btn-secondary btn-dash'
-                onClick={() =>
-                  setFriendsPermanent(
-                    [
-                      ...friends,
-                      {
-                        name: window.prompt('Name?') ?? 'gav',
-                        is_in_game: false,
-                      },
-                    ],
-                    Commands.Add,
-                  )
-                }
-              >
-                Add new friend
-              </button>
-              {friends.map((friend, i) => (
-                <div
-                  key={i}
-                  className={`flex justify-between items-center rounded-md px-4 py-2 ro border-2 ${friend.is_in_game ? 'border-secondary/60' : 'border-dashed border-secondary/20'}`}
-                  onClick={() =>
-                    setFriendsPermanent(
-                      friends.map((f, j) => (i === j ? { ...f, is_in_game: !f.is_in_game } : f)),
-                      Commands.Toggle,
-                    )
-                  }
-                >
-                  <p>{friend.name}</p>
-
-                  <svg
-                    onClick={e => {
-                      e.stopPropagation() // Prevent the parent onClick from firing
-                      setFriendsPermanent(
-                        friends.filter((_, j) => i !== j),
-                        Commands.Remove,
-                      )
-                    }}
-                    className='size-6 fill-error'
-                    xmlns='http://www.w3.org/2000/svg'
-                    viewBox='0 0 24 24'
-                  >
-                    <path
-                      fill-rule='evenodd'
-                      d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-1.72 6.97a.75.75 0 1 0-1.06 1.06L10.94 12l-1.72 1.72a.75.75 0 1 0 1.06 1.06L12 13.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L13.06 12l1.72-1.72a.75.75 0 1 0-1.06-1.06L12 10.94l-1.72-1.72Z'
-                      clip-rule='evenodd'
-                    />
-                  </svg>
-                </div>
-              ))}
-            </>
-          )}
-
-          <button className='btn btn-dash btn-secondary' onClick={qrcodeGameExport}>
-            Export Game Information
-          </button>
-          {showQR && (
-            <div className=' p-4 bg-white rounded-lg shadow-md flex justify-center items-center'>
-              <QRCode
-                value={gameSerialized}
-                size={200}
-                bgColor='#ffffff' // Explicit white background
-                fgColor='#000000'
-                level='Q'
-              />
-            </div>
-          )}
-          {/* QR Code Import Section */}
-          <button className='btn btn-dash btn-primary' onClick={() => setIsScanning(!isScanning)}>
-            {isScanning ? 'Stop Scanning' : 'Start Scanning'}
-          </button>
-          {isScanning && <Scanner onScan={handleScan} />}
-          <button
-            className='btn btn-secondary btn-dash'
-            onClick={() =>
-              setFriendsPermanent(
-                friends.map(f => ({ ...f, is_in_game: false })),
-                Commands.Toggle,
-              )
-            }
+        {/* Quick Actions */}
+        <div className='grid grid-cols-2 gap-3 mb-6'>
+          <button 
+            className='btn btn-custom-primary rounded-xl py-3'
+            onClick={() => setShowFriends(!showFriends)}
           >
-            Leave All
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-5 h-5 mr-2'>
+              <path d='M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z' />
+            </svg>
+            {showFriends ? 'Hide' : 'Manage'} Friends
+          </button>
+          <button 
+            className='btn btn-custom-secondary rounded-xl py-3'
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-5 h-5 mr-2'>
+              <path fillRule='evenodd' d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z' clipRule='evenodd' />
+            </svg>
+            Game History
           </button>
         </div>
-      </div>
 
-      <div className='flex flex-col gap-5'>
-        <div className='text-xl'>Current game</div>
-        <div className='text-md'>Number of players: {players.length}</div>
-        <div>
-          <p className='mb-1 text-md'>Players:</p>
-          <div className='flex flex-wrap gap-2 '>
-            {players.map(player => (
-              <span
-                onClick={() =>
-                  setFriendsPermanent(
-                    friends.map(f => (player === f.name ? { ...f, is_in_game: !f.is_in_game } : f)),
-                    Commands.Toggle,
-                  )
-                }
-                className='btn btn-dash'
-              >
-                {player}
-              </span>
-            ))}
+        {/* Friends Management */}
+        {showFriends && (
+          <FriendsManager
+            friends={friends}
+            onAddFriend={handleAddFriend}
+            onBatchAddFriends={handleBatchAddFriends}
+            onToggleFriend={handleToggleFriend}
+            onRemoveFriend={handleRemoveFriend}
+            onClearAll={handleClearAll}
+            onExportQR={() => setShowQR(!showQR)}
+            onImportQR={() => setIsScanning(!isScanning)}
+            isScanning={isScanning}
+          />
+        )}
+
+        {/* QR Code Section */}
+        <QRCodeSection
+          showQR={showQR}
+          gameSerialized={gameSerialized}
+          isScanning={isScanning}
+          onScan={handleScan}
+        />
+
+        {/* Game History */}
+        {showHistory && (
+          <GameHistory
+            gameHistory={gameHistory}
+            onClearHistory={handleClearHistory}
+          />
+        )}
+
+        {/* Game Setup */}
+        <GameSetup
+          players={players}
+          playersHash={playersHash}
+          seed={seed}
+          setSeed={setSeed}
+          me={me}
+        />
+
+        {/* Game Information */}
+        {game && seed && (
+          <GameInfo
+            game={game}
+            gameType={gameType}
+            players={players}
+            me={me}
+            seed={seed}
+          />
+        )}
+
+        {/* No Game State */}
+        {(!game || !seed) && players.length >= 5 && (
+          <div className='bg-blue-50 border-2 border-blue-200 rounded-xl p-4 text-blue-700'>
+            <p className='font-medium'>Generate a game seed to start!</p>
           </div>
-        </div>
+        )}
 
-        <div className='text-md'>
-          <span>Hash of players: </span>
-          <span className='text-warning'>{Math.abs(playersHash).toString(16)}</span>
-        </div>
+        {/* Not Enough Players */}
+        {players.length < 5 && (
+          <div className='bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-orange-700'>
+            <p className='font-medium'>You need at least 5 players to start a game</p>
+          </div>
+        )}
 
-        <div className='join'>
-          <button className='btn join-item' onClick={() => setSeed(makeid(4))}>
-            Game seed
-          </button>
-          <input className='input join-item' type='text' value={seed} onChange={e => setSeed(e.target.value)} />
-        </div>
-
-        {game &&
-          gameDict[gameType].renderGame(
-            players.findIndex(x => x === me),
-            players,
-            game,
-          )}
-
-        {game && gameDict[gameType].encryptGameInfo?.(players, game, seed)}
-
-        <BuildInfo />
+        {/* Footer */}
+        <footer className='text-center mt-8 pb-4'>
+          <BuildInfo />
+        </footer>
       </div>
+
+      {/* Dialog Component */}
+      <Dialog
+        isOpen={dialogState.isOpen}
+        onClose={closeDialog}
+        title={dialogState.title}
+        message={dialogState.message}
+        type={dialogState.type}
+        onConfirm={dialogState.onConfirm}
+        confirmText={dialogState.confirmText}
+        cancelText={dialogState.cancelText}
+        placeholder={dialogState.placeholder}
+        defaultValue={dialogState.defaultValue}
+      />
 
       <PWABadge />
     </div>
