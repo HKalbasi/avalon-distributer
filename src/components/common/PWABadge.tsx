@@ -1,10 +1,6 @@
-import './PWABadge.css'
-
 import { useRegisterSW } from 'virtual:pwa-register/react'
 
 function PWABadge() {
-  // periodic sync is disabled, change the value to enable it, the period is in milliseconds
-  // You can remove onRegisteredSW callback and registerPeriodicSync function
   const period = 5000
 
   const {
@@ -29,31 +25,33 @@ function PWABadge() {
   }
 
   return (
-    <div className='PWABadge' role='alert' aria-labelledby='toast-message'>
+    <>
       {needRefresh && (
-        <div className='PWABadge-toast'>
-          <div className='PWABadge-message'>
-            <span id='toast-message'>New content available, click on reload button to update.</span>
-          </div>
-          <div className='PWABadge-buttons'>
-            <button className='PWABadge-toast-button' onClick={() => updateServiceWorker(true)}>
-              Reload
-            </button>
-            <button className='PWABadge-toast-button' onClick={() => close()}>
-              Close
-            </button>
+        <div className='fixed bottom-4 right-4 z-50'>
+          <div className='alert alert-info shadow-lg'>
+            <div>
+              <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' className='stroke-current shrink-0 w-6 h-6'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' d='M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'></path>
+              </svg>
+              <span>New update available!</span>
+            </div>
+            <div className='flex-none'>
+              <button className='btn btn-sm btn-primary' onClick={() => updateServiceWorker(true)}>
+                Update
+              </button>
+              <button className='btn btn-sm btn-ghost' onClick={() => close()}>
+                Dismiss
+              </button>
+            </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
 export default PWABadge
 
-/**
- * This function will register a periodic sync check every hour, you can modify the interval as needed.
- */
 function registerPeriodicSync(period: number, swUrl: string, r: ServiceWorkerRegistration) {
   if (period <= 0) return
 
