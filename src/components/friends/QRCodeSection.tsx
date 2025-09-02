@@ -17,18 +17,10 @@ const QRCodeSection = ({ showQR, gameSerialized, isScanning, onScan }: QRCodeSec
           <h3 className='text-lg font-bold text-[#2c3e50] mb-4 text-center'>Share with Friends</h3>
           <div className='flex justify-center'>
             <div className='bg-white p-4 rounded-xl shadow-inner'>
-              <QRCode
-                value={gameSerialized}
-                size={200}
-                bgColor='#ffffff'
-                fgColor='#2c3e50'
-                level='Q'
-              />
+              <QRCode value={gameSerialized} size={200} bgColor='#ffffff' fgColor='#2c3e50' level='Q' />
             </div>
           </div>
-          <p className='text-center text-sm text-[#bdc3c7] mt-4'>
-            Friends can scan this to import your player list
-          </p>
+          <p className='text-center text-sm text-[#bdc3c7] mt-4'>Friends can scan this to import your player list</p>
         </div>
       )}
 
@@ -39,9 +31,7 @@ const QRCodeSection = ({ showQR, gameSerialized, isScanning, onScan }: QRCodeSec
           <div className='rounded-xl overflow-hidden'>
             <Scanner onScan={onScan} />
           </div>
-          <p className='text-center text-sm text-[#bdc3c7] mt-4'>
-            Point your camera at a friend's QR code
-          </p>
+          <p className='text-center text-sm text-[#bdc3c7] mt-4'>Point your camera at a friend's QR code</p>
         </div>
       )}
     </>

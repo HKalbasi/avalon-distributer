@@ -19,7 +19,7 @@ const InitialSetup = ({ onComplete }: InitialSetupProps) => {
           'Welcome! Please enter your name to get started.',
           'Setup Your Profile',
           'Your name...',
-          'player'
+          'player',
         )
         if (name) {
           onComplete(name.toLowerCase())
