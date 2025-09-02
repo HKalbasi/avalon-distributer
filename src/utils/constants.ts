@@ -1,16 +1,16 @@
 export const roleDescriptions = {
   // Avalon roles
-  'Merlin': 'Knows all evil players except Mordred',
-  'Percival': 'Knows Merlin and Morgana but not which is which',
-  'Mordred': 'Evil player hidden from Merlin',
-  'Morgana': 'Evil player who appears as Merlin to Percival',
-  'Assassin': 'Can assassinate Merlin at the end',
-  'Minion': 'Evil servant',
-  'Servant': 'Good servant with no special powers',
+  Merlin: 'Knows all evil players except Mordred',
+  Percival: 'Knows Merlin and Morgana but not which is which',
+  Mordred: 'Evil player hidden from Merlin',
+  Morgana: 'Evil player who appears as Merlin to Percival',
+  Assassin: 'Can assassinate Merlin at the end',
+  Minion: 'Evil servant',
+  Servant: 'Good servant with no special powers',
   // Secret Hitler roles
   'Adolf Hitler': 'Fascist leader - win if elected Chancellor after 3 fascist policies',
-  'Fascist': 'Supports Hitler',
-  'Liberal': 'Prevents fascist policies'
+  Fascist: 'Supports Hitler',
+  Liberal: 'Prevents fascist policies',
 }
 
 export const rolesPerPlayerCountAvalon: { [x: number]: string[] | undefined } = {

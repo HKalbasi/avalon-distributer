@@ -45,16 +45,16 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
   const handleClick = async (winner: string) => {
     textToEncrypt.game_info.winner = winner
     const encryptedText = encrypt()
-    
+
     if (encryptedText === 'Encryption error') {
       return
     }
-    
+
     // Save to game history
     const gameType = textToEncrypt.game_info.game_type || 'Avalon'
     const players = Object.keys(textToEncrypt.players)
     const seed = textToEncrypt.game_info.game_seed
-    
+
     const history = JSON.parse(localStorage.getItem('gameHistory') ?? '[]')
     const newGame = {
       id: Date.now().toString(),
@@ -62,14 +62,14 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
       gameType,
       players,
       winner,
-      seed
+      seed,
     }
     history.unshift(newGame)
     if (history.length > 20) history.pop()
     localStorage.setItem('gameHistory', JSON.stringify(history))
-    
+
     let copySuccess = false
-    
+
     if (navigator.clipboard && window.isSecureContext) {
       try {
         await navigator.clipboard.writeText(encryptedText)
@@ -80,7 +80,7 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
     } else {
       copySuccess = copyToClipboardFallback(encryptedText)
     }
-    
+
     if (copySuccess) {
       setCopied(true)
       await showSuccess('Game result encrypted and copied to clipboard!', 'Success')
@@ -95,13 +95,17 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
 
   return (
     <>
-      <button 
+      <button
         className='w-full py-3 px-4 rounded-xl font-medium text-white transition-all hover:scale-105'
         style={{ backgroundColor: '#1abc9c' }}
         onClick={() => setShowAlert(true)}
       >
         <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-5 h-5 inline mr-2'>
-          <path fillRule='evenodd' d='M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z' clipRule='evenodd' />
+          <path
+            fillRule='evenodd'
+            d='M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z'
+            clipRule='evenodd'
+          />
         </svg>
         Save Encrypted Game Result
       </button>
@@ -113,33 +117,60 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
               Who won the game?
             </h2>
             <div className='space-y-3'>
-              <button 
-                onClick={() => handleClick('Good/Liberal')} 
+              <button
+                onClick={() => handleClick('Good/Liberal')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white transition-all hover:scale-105 flex items-center justify-center'
                 style={{ backgroundColor: '#1abc9c' }}
               >
-                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-6 h-6 mr-2'>
-                  <path fillRule='evenodd' d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-2.625 6c-.54 0-.828.419-.936.634a1.96 1.96 0 0 0-.189.866c0 .298.059.605.189.866.108.215.395.634.936.634.54 0 .828-.419.936-.634.13-.26.189-.568.189-.866 0-.298-.059-.605-.189-.866-.108-.215-.395-.634-.936-.634Zm4.314.634c.108-.215.395-.634.936-.634.54 0 .828.419.936.634.13.26.189.568.189.866 0 .298-.059.605-.189.866-.108.215-.395.634-.936.634-.54 0-.828-.419-.936-.634a1.96 1.96 0 0 1-.189-.866c0-.298.059-.605.189-.866Zm2.023 6.828a.75.75 0 1 0-1.06-1.06 3.75 3.75 0 0 1-5.304 0 .75.75 0 0 0-1.06 1.06 5.25 5.25 0 0 0 7.424 0Z' clipRule='evenodd' />
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 24 24'
+                  fill='currentColor'
+                  className='w-6 h-6 mr-2'
+                >
+                  <path
+                    fillRule='evenodd'
+                    d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-2.625 6c-.54 0-.828.419-.936.634a1.96 1.96 0 0 0-.189.866c0 .298.059.605.189.866.108.215.395.634.936.634.54 0 .828-.419.936-.634.13-.26.189-.568.189-.866 0-.298-.059-.605-.189-.866-.108-.215-.395-.634-.936-.634Zm4.314.634c.108-.215.395-.634.936-.634.54 0 .828.419.936.634.13.26.189.568.189.866 0 .298-.059.605-.189.866-.108.215-.395.634-.936.634-.54 0-.828-.419-.936-.634a1.96 1.96 0 0 1-.189-.866c0-.298.059-.605.189-.866Zm2.023 6.828a.75.75 0 1 0-1.06-1.06 3.75 3.75 0 0 1-5.304 0 .75.75 0 0 0-1.06 1.06 5.25 5.25 0 0 0 7.424 0Z'
+                    clipRule='evenodd'
+                  />
                 </svg>
                 Good/Liberal Wins
               </button>
-              
-              <button 
-                onClick={() => handleClick('Merlin Assassinated')} 
+
+              <button
+                onClick={() => handleClick('Merlin Assassinated')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white bg-orange-500 transition-all hover:scale-105 hover:bg-orange-600 flex items-center justify-center'
               >
-                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-6 h-6 mr-2'>
-                  <path fillRule='evenodd' d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM9 7.5A.75.75 0 0 0 9 9h.75a.75.75 0 0 0 0-1.5H9Zm6.75.75a.75.75 0 0 0-.75-.75h-.75a.75.75 0 0 0 0 1.5H15a.75.75 0 0 0 .75-.75ZM12 17.25a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-.75.75Z' clipRule='evenodd' />
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 24 24'
+                  fill='currentColor'
+                  className='w-6 h-6 mr-2'
+                >
+                  <path
+                    fillRule='evenodd'
+                    d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM9 7.5A.75.75 0 0 0 9 9h.75a.75.75 0 0 0 0-1.5H9Zm6.75.75a.75.75 0 0 0-.75-.75h-.75a.75.75 0 0 0 0 1.5H15a.75.75 0 0 0 .75-.75ZM12 17.25a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 1.5 0v4.5a.75.75 0 0 1-.75.75Z'
+                    clipRule='evenodd'
+                  />
                 </svg>
                 Merlin Assassinated
               </button>
-              
-              <button 
-                onClick={() => handleClick('Evil/Fascist')} 
+
+              <button
+                onClick={() => handleClick('Evil/Fascist')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white bg-red-500 transition-all hover:scale-105 hover:bg-red-600 flex items-center justify-center'
               >
-                <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor' className='w-6 h-6 mr-2'>
-                  <path fillRule='evenodd' d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-2.625 6c-.54 0-.828.419-.936.634a1.96 1.96 0 0 0-.189.866c0 .298.059.605.189.866.108.215.395.634.936.634.54 0 .828-.419.936-.634.13-.26.189-.568.189-.866 0-.298-.059-.605-.189-.866-.108-.215-.395-.634-.936-.634Zm4.314.634c.108-.215.395-.634.936-.634.54 0 .828.419.936.634.13.26.189.568.189.866 0 .298-.059.605-.189.866-.108.215-.395.634-.936.634-.54 0-.828-.419-.936-.634a1.96 1.96 0 0 1-.189-.866c0-.298.059-.605.189-.866Zm-4.34 7.964a.75.75 0 0 1-1.061-1.06 5.236 5.236 0 0 1 3.73-1.538 5.236 5.236 0 0 1 3.695 1.538.75.75 0 1 1-1.061 1.06 3.736 3.736 0 0 0-2.639-1.098 3.736 3.736 0 0 0-2.664 1.098Z' clipRule='evenodd' />
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  viewBox='0 0 24 24'
+                  fill='currentColor'
+                  className='w-6 h-6 mr-2'
+                >
+                  <path
+                    fillRule='evenodd'
+                    d='M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm-2.625 6c-.54 0-.828.419-.936.634a1.96 1.96 0 0 0-.189.866c0 .298.059.605.189.866.108.215.395.634.936.634.54 0 .828-.419.936-.634.13-.26.189-.568.189-.866 0-.298-.059-.605-.189-.866-.108-.215-.395-.634-.936-.634Zm4.314.634c.108-.215.395-.634.936-.634.54 0 .828.419.936.634.13.26.189.568.189.866 0 .298-.059.605-.189.866-.108.215-.395.634-.936.634-.54 0-.828-.419-.936-.634a1.96 1.96 0 0 1-.189-.866c0-.298.059-.605.189-.866Zm-4.34 7.964a.75.75 0 0 1-1.061-1.06 5.236 5.236 0 0 1 3.73-1.538 5.236 5.236 0 0 1 3.695 1.538.75.75 0 1 1-1.061 1.06 3.736 3.736 0 0 0-2.639-1.098 3.736 3.736 0 0 0-2.664 1.098Z'
+                    clipRule='evenodd'
+                  />
                 </svg>
                 Evil/Fascist Wins
               </button>
@@ -149,12 +180,14 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
                   <div className='w-full border-t' style={{ borderColor: '#bdc3c7' }}></div>
                 </div>
                 <div className='relative flex justify-center text-sm'>
-                  <span className='px-2 bg-white' style={{ color: '#bdc3c7' }}>OR</span>
+                  <span className='px-2 bg-white' style={{ color: '#bdc3c7' }}>
+                    OR
+                  </span>
                 </div>
               </div>
 
-              <button 
-                onClick={() => setShowAlert(false)} 
+              <button
+                onClick={() => setShowAlert(false)}
                 className='w-full py-3 px-6 rounded-xl font-medium transition-all hover:scale-105 border-2'
                 style={{ borderColor: '#bdc3c7', color: '#2c3e50' }}
               >

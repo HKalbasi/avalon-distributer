@@ -142,17 +142,18 @@ input:focus-visible {
   color: var(--primary-dark);
 }
 
-input{
-    /* color: #34495e!important; */
-    background-color: #ecf0f1!important;
-    color: #7f8c8d;
-    font-size: 1.5em;
-    font-weight: bold;
+input {
+  /* color: #34495e!important; */
+  background-color: #ecf0f1 !important;
+  color: #7f8c8d;
+  font-size: 1.5em;
+  font-weight: bold;
 }
 
-.players-hash, .game-hash{
+.players-hash,
+.game-hash {
   font-size: 2em;
-  font-family: "Cascadia Code";
+  font-family: 'Cascadia Code';
   color: #7f8c8d;
   font-weight: bold;
 }

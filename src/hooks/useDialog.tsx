@@ -11,22 +11,25 @@ interface DialogOptions {
 }
 
 export const useDialog = () => {
-  const [dialogState, setDialogState] = useState<DialogOptions & { isOpen: boolean; onConfirm?: (value?: string) => void }>({
+  const [dialogState, setDialogState] = useState<
+    DialogOptions & { isOpen: boolean; onConfirm?: (value?: string) => void }
+  >({
     isOpen: false,
     message: '',
-    type: 'info'
+    type: 'info',
   })
 
   const showDialog = useCallback((options: DialogOptions): Promise<string | boolean> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       setDialogState({
         ...options,
         isOpen: true,
-        onConfirm: options.type === 'confirm' 
-          ? () => resolve(true) 
-          : options.type === 'prompt'
-          ? (value?: string) => resolve(value || '')
-          : undefined
+        onConfirm:
+          options.type === 'confirm'
+            ? () => resolve(true)
+            : options.type === 'prompt'
+              ? (value?: string) => resolve(value || '')
+              : undefined,
       })
 
       if (options.type !== 'confirm' && options.type !== 'prompt') {
@@ -43,29 +46,47 @@ export const useDialog = () => {
     }
   }, [dialogState.type])
 
-  const showInfo = useCallback((message: string, title?: string) => {
-    return showDialog({ message, title, type: 'info' })
-  }, [showDialog])
+  const showInfo = useCallback(
+    (message: string, title?: string) => {
+      return showDialog({ message, title, type: 'info' })
+    },
+    [showDialog],
+  )
 
-  const showSuccess = useCallback((message: string, title?: string) => {
-    return showDialog({ message, title, type: 'success' })
-  }, [showDialog])
+  const showSuccess = useCallback(
+    (message: string, title?: string) => {
+      return showDialog({ message, title, type: 'success' })
+    },
+    [showDialog],
+  )
 
-  const showError = useCallback((message: string, title?: string) => {
-    return showDialog({ message, title, type: 'error' })
-  }, [showDialog])
+  const showError = useCallback(
+    (message: string, title?: string) => {
+      return showDialog({ message, title, type: 'error' })
+    },
+    [showDialog],
+  )
 
-  const showWarning = useCallback((message: string, title?: string) => {
-    return showDialog({ message, title, type: 'warning' })
-  }, [showDialog])
+  const showWarning = useCallback(
+    (message: string, title?: string) => {
+      return showDialog({ message, title, type: 'warning' })
+    },
+    [showDialog],
+  )
 
-  const confirm = useCallback((message: string, title?: string): Promise<boolean> => {
-    return showDialog({ message, title, type: 'confirm' }) as Promise<boolean>
-  }, [showDialog])
+  const confirm = useCallback(
+    (message: string, title?: string): Promise<boolean> => {
+      return showDialog({ message, title, type: 'confirm' }) as Promise<boolean>
+    },
+    [showDialog],
+  )
 
-  const prompt = useCallback((message: string, title?: string, placeholder?: string, defaultValue?: string): Promise<string> => {
-    return showDialog({ message, title, type: 'prompt', placeholder, defaultValue }) as Promise<string>
-  }, [showDialog])
+  const prompt = useCallback(
+    (message: string, title?: string, placeholder?: string, defaultValue?: string): Promise<string> => {
+      return showDialog({ message, title, type: 'prompt', placeholder, defaultValue }) as Promise<string>
+    },
+    [showDialog],
+  )
 
   return {
     dialogState,
@@ -75,6 +96,6 @@ export const useDialog = () => {
     showError,
     showWarning,
     confirm,
-    prompt
+    prompt,
   }
 }
