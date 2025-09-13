@@ -49,7 +49,7 @@ const GameInfo = ({ game, gameType, players, me, seed }: GameInfoProps) => {
         </div>
       )}
 
-      {myRole === 'Percival' && (
+      {myRole === 'Persival' && (
         <div className='bg-purple-50 rounded-2xl p-6 border-2 border-purple-200 animate-slide-in'>
           <h4 className='font-bold mb-4 text-purple-700 text-lg'>Merlin & Morgana</h4>
           <p className='text-sm text-purple-600 mb-3'>One is good, one is evil - but which is which?</p>
