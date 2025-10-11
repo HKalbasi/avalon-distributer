@@ -24,15 +24,15 @@ const GameInfo = ({ game, gameType, players, me, seed }: GameInfoProps) => {
         <div className='bg-red-50 rounded-2xl p-6 border-2 border-red-200 animate-slide-in'>
           <h4 className='font-bold mb-4 text-red-700 text-lg'>Your Evil Team</h4>
           <div className='space-y-3'>
-            {game.roles.map(
-              (role, idx) =>
-                bads.includes(role) && (
-                  <div key={idx} className='flex justify-between items-center bg-white rounded-xl px-4 py-3 shadow-sm'>
-                    <span className='font-medium text-[#2c3e50]'>{role}</span>
-                    <span className='text-[#2c3e50]/70'>{players[idx]}</span>
-                  </div>
-                ),
-            )}
+            {game.roles
+              .filter(role => bads.includes(role))
+              .sort((a, b) => bads.indexOf(a) - bads.indexOf(b))
+              .map((role, idx) => (
+                <div key={idx} className='flex justify-between items-center bg-white rounded-xl px-4 py-3 shadow-sm'>
+                  <span className='font-medium text-[#2c3e50]'>{role}</span>
+                  <span className='text-[#2c3e50]/70'>{players[idx]}</span>
+                </div>
+              ))}
           </div>
         </div>
       )}
