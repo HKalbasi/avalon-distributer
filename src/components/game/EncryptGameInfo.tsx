@@ -118,7 +118,7 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
             </h2>
             <div className='space-y-3'>
               <button
-                onClick={() => handleClick('Good/Liberal')}
+                onClick={() => handleClick('shahr')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white transition-all hover:scale-105 flex items-center justify-center'
                 style={{ backgroundColor: '#1abc9c' }}
               >
@@ -138,7 +138,7 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
               </button>
 
               <button
-                onClick={() => handleClick('Merlin Assassinated')}
+                onClick={() => handleClick('merlin shot')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white bg-orange-500 transition-all hover:scale-105 hover:bg-orange-600 flex items-center justify-center'
               >
                 <svg
@@ -157,7 +157,7 @@ export const EncryptGameInfo = ({ textToEncrypt }: any) => {
               </button>
 
               <button
-                onClick={() => handleClick('Evil/Fascist')}
+                onClick={() => handleClick('3 fail')}
                 className='w-full py-4 px-6 rounded-xl font-medium text-white bg-red-500 transition-all hover:scale-105 hover:bg-red-600 flex items-center justify-center'
               >
                 <svg
